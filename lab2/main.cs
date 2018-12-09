@@ -1,35 +1,45 @@
 ﻿using System;
-using System.Text;
 using System.Threading;
 using System.Collections.Generic;
 
 namespace lab2 {
     public class Program {
         static void Main(string[] args) {
-            new NetChange(args);
+            new Instance(args);
         }
     }
 
-    public class NetChange {
+    public class Instance {
         private int myPort;
         private int[] neighbourPorts;
 
-        public NetChange(string[] ports) {
+        public Instance(string[] ports) {
+            // get own port
             this.myPort = Int32.Parse(ports[0]);
 
+            // list all neighbour ports
             this.neighbourPorts = new int[ports.Length - 1];
             for (int i = 1; i < ports.Length; i++)
                 this.neighbourPorts[i - 1] = Int32.Parse(ports[i]);
+        }
+
+        private void ShowTable() {
 
         }
-        public NetChange (int[] ports) {
-            this.myPort = ports[0];
 
-            this.neighbourPorts = new int[ports.Length - 1];
-            for (int i = 1; i < ports.Length; i++)
-                this.neighbourPorts[i - 1] = ports[i];
+        private void Send() {
+
+        }
+
+        private void CreateConnection() {
+
+        }
+
+        private void DestroyConnection() {
+
         }
     }
+
     public class RoutingTable {
         private int originPort;
         // if route = routes[key], then route[0] is the amount of steps, and route[1] the preferred neighbour
