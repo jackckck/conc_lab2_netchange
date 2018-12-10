@@ -21,8 +21,7 @@ namespace lab2 {
             // create readers for new connection
             TcpClient newNeighbour = handle.AcceptTcpClient();
             StreamReader neighbourIn = new StreamReader(newNeighbour.GetStream());
-            StreamWriter neighbourOut = new StreamWriter(newNeighbour.GetStream());
-            neighbourOut.AutoFlush = true;
+            StreamWriter neighbourOut = new StreamWriter(newNeighbour.GetStream()) { AutoFlush = true };
 
             // read connecting port
             int neighbourPort = int.Parse(neighbourIn.ReadLine());
@@ -45,7 +44,7 @@ namespace lab2 {
             // initiate reader and writer
             TcpClient client = new TcpClient("localhost", neightbourPort);
             this.Read = new StreamReader(client.GetStream());
-            this.Write = new StreamWriter(client.GetStream()) { Write.AutoFlush = true };
+            this.Write = new StreamWriter(client.GetStream()) { AutoFlush = true };
 
             // tell neighbour our port
             Write.WriteLine(port);
