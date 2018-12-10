@@ -27,6 +27,7 @@ namespace lab2 {
             int neighbourPort = int.Parse(neighbourIn.ReadLine());
 
             // add connection to routing table
+            Connection connection = new Connection(neighbourIn, neighbourOut);
             // todo
 
             Console.WriteLine("Verbonden: " + neighbourPort);
@@ -40,9 +41,9 @@ namespace lab2 {
         public StreamWriter Write;
 
         // constructor for client
-        public Connection(int port, int neightbourPort) {
+        public Connection(int port, int neighbourPort) {
             // initiate reader and writer
-            TcpClient client = new TcpClient("localhost", neightbourPort);
+            TcpClient client = new TcpClient("localhost", neighbourPort);
             this.Read = new StreamReader(client.GetStream());
             this.Write = new StreamWriter(client.GetStream()) { AutoFlush = true };
 

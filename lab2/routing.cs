@@ -30,5 +30,10 @@ namespace lab2 {
             }
             return res;
         }
+
+        public override string ToString() {
+            // todo implement
+            return "todo";
+        }
     }
 }

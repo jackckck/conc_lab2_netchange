@@ -30,15 +30,20 @@ namespace lab2 {
         }
 
         private void ShowTable() {
-            // todo
+            routing.ToString();
         }
 
         private void Send() {
-            // todo
+            // todo sent packet to neighbour closest to destination according to routingtable
         }
 
-        private void CreateConnection() {
-            // todo
+        private void CreateConnection(int neighbourPort) {
+            // smallest portnumber requests connection
+            if (this.port < neighbourPort) {
+                // add connection to routing table
+                Connection connection = new Connection(this.port, neighbourPort);
+                // todo
+            }
         }
 
         private void DestroyConnection() {
