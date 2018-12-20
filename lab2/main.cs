@@ -6,34 +6,33 @@ namespace lab2 {
     public class Program {
         static void Main(string[] args) {
             // create a new instance with given args
-            new Instance(args);
+            new Node(args);
         }
     }
 
-    public class Instance {
+    public class Node {
         public int port;
-        private int[] neighbourPorts;
         private RoutingTable routing;
 
-        public Instance(string[] ports) {
+        public Node(string[] ports) {
             // get own port and start listening
             Console.Title = "NetChange " + ports[0];
             this.port = Int32.Parse(ports[0]);
             new Listener(this.port);
 
             // list all neighbour ports
-            this.neighbourPorts = new int[ports.Length - 1];
-            for (int i = 1; i < ports.Length; i++) this.neighbourPorts[i - 1] = Int32.Parse(ports[i]);
+            int[] neighbourPorts = new int[ports.Length - 1];
+            for (int i = 1; i < ports.Length; i++) neighbourPorts[i - 1] = Int32.Parse(ports[i]);
 
             // instanciate routing table
             this.routing = new RoutingTable(port, neighbourPorts);
         }
 
         private void ShowTable() {
-            routing.ToString();
+            Console.WriteLine(this.routing);
         }
 
-        private void Send() {
+        private void Send(int farPort, string message) {
             // todo sent packet to neighbour closest to destination according to routingtable
         }
 
@@ -46,7 +45,7 @@ namespace lab2 {
             }
         }
 
-        private void DestroyConnection() {
+        private void DestroyConnection(int neighbourPort) {
             // todo
         }
     }

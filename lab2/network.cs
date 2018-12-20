@@ -48,7 +48,7 @@ namespace lab2 {
             this.Write = new StreamWriter(client.GetStream()) { AutoFlush = true };
 
             // tell neighbour our port
-            Write.WriteLine(port);
+            this.Write.WriteLine(port);
 
             new Thread(Reader).Start();
         }

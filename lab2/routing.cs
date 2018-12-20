@@ -18,10 +18,9 @@ namespace lab2 {
             this.nodeCount = 1 + neighbours.Length;
             // connections and routes to direct neighbours
             for (int i = 0; i < neighbours.Length; i++) {
-                this.neighbourConnections.Add(neighbours[i], new Connection(home, neighbours[i]));
-                this.neighbourSteps.      Add(neighbours[i], new Dictionary<int, int>());
-                this.routes.              Add(home, new int[2] { 0, home });
-                this.routes.              Add(neighbours[i], new int[2] { 1, neighbours[i] });
+                this.neighbourSteps.Add(neighbours[i], new Dictionary<int, int>());
+                this.routes.Add(home, new int[2] { 0, home });
+                this.routes.Add(neighbours[i], new int[2] { 1, neighbours[i] });
             }
         }
 
