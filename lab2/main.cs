@@ -16,6 +16,7 @@ namespace lab2 {
         public int port;
         private RoutingTable routing;
 
+        // constructor
         public Node(string[] ports) {
             Console.Title = "NetChange " + ports[0];
 
@@ -52,7 +53,7 @@ namespace lab2 {
             int neighbourPort = int.Parse(neighbourIn.ReadLine());
 
             // add connection to routing table
-            Connection connection = new Connection(neighbourIn, neighbourOut);
+            Connection connection = new Connection(neighbourIn, neighbourOut, ProcessMessage);
             this.routing.AddConnection(neighbourPort, connection);
 
             Console.WriteLine("Verbonden: " + neighbourPort);
@@ -60,13 +61,35 @@ namespace lab2 {
             goto loop;
         }
 
+        // send a message to a port
         private void Send(int farPort, string message) {
             routing.GetConnection(farPort).Send(message);
         }
 
+        // process an incoming message
+        private void ProcessMessage(string message) {
+            switch (message[0]) {
+                // new connection from neighbour 
+                case 'c':
+
+                    break;
+                // connection from neighbour lost
+                case 'b':
+
+                    break;
+                // 
+                case 'd':
+
+                    break;
+                case 'm':
+
+                    break;
+            }
+        }
+
         private void AddConnection(int neighbourPort) {
             // smallest portnumber requests connection
-            this.routing.AddConnection(neighbourPort, new Connection(this.port, neighbourPort));
+            this.routing.AddConnection(neighbourPort, new Connection(this.port, neighbourPort, ProcessMessage));
         }
 
         private void DestroyConnection(int neighbourPort) {
