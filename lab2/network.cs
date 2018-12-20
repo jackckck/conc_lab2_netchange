@@ -1,69 +1,65 @@
-﻿using System;
-using System.IO;
-using System.Net;
+﻿using System.IO;
 using System.Threading;
 using System.Net.Sockets;
 
 namespace lab2 {
-    class Listener {
-        public Listener(int port) {
-            // listen on given port
-            TcpListener server = new TcpListener(IPAddress.Any, port);
-            server.Start();
-
-            // start a thread for accepting connections
-            new Thread(() => CreateConnection(server)).Start();
-        }
-
-        private void CreateConnection(TcpListener handle) {
-            loop:
-
-            // create readers for new connection
-            TcpClient newNeighbour = handle.AcceptTcpClient();
-            StreamReader neighbourIn = new StreamReader(newNeighbour.GetStream());
-            StreamWriter neighbourOut = new StreamWriter(newNeighbour.GetStream()) { AutoFlush = true };
-
-            // read connecting port
-            int neighbourPort = int.Parse(neighbourIn.ReadLine());
-
-            // add connection to routing table
-            Connection connection = new Connection(neighbourIn, neighbourOut);
-            // todo
-
-            Console.WriteLine("Verbonden: " + neighbourPort);
-
-            goto loop;
-        }
-    }
-
-    class Connection {
-        public StreamReader Read;
-        public StreamWriter Write;
+    public class Connection {
+        private StreamReader Reader;
+        private StreamWriter Writer;
 
         // constructor for client
         public Connection(int port, int neighbourPort) {
             // initiate reader and writer
             TcpClient client = new TcpClient("localhost", neighbourPort);
-            this.Read = new StreamReader(client.GetStream());
-            this.Write = new StreamWriter(client.GetStream()) { AutoFlush = true };
+            this.Reader = new StreamReader(client.GetStream());
+            this.Writer = new StreamWriter(client.GetStream()) { AutoFlush = true };
 
             // tell neighbour our port
-            this.Write.WriteLine(port);
+            Send(port.ToString());
 
-            new Thread(Reader).Start();
+            new Thread(Listen).Start();
         }
 
         // constructor for server
         public Connection(StreamReader read, StreamWriter write) {
-            this.Read = read;
-            this.Write = write;
+            this.Reader = read;
+            this.Writer = write;
 
-            new Thread(Reader).Start();
+            new Thread(Listen).Start();
         }
 
-        // print whatever is read
-        public void Reader() {
-            try { while (true) Console.WriteLine(Read.ReadLine()); }
+        public void Send(string message) {
+            this.Writer.Write(message);
+        }
+        
+        private void Listen() {
+            string input;
+
+            try {
+                Loop:
+
+                input = Reader.ReadLine();
+                switch (input[0]) {
+                    // new connection from neighbour 
+                    case 'c':
+
+                        break;
+                    // connection from neighbour lost
+                    case 'b':
+
+                        break;
+                    // 
+                    case 'd':
+
+                        break;
+                    case 'm':
+
+                        break;
+                    
+                }
+
+                goto Loop;
+            }
             catch { } // todo print verbroken
         }
     }

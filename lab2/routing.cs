@@ -63,5 +63,27 @@ namespace lab2 {
             }
             return res;
         }
+
+        public void AddConnection(int neighbourPort, Connection c) {
+            if (this.neighbourConnections.ContainsKey(neighbourPort)) return;
+            this.neighbourConnections.Add(neighbourPort, c);
+        }
+
+        // returns null if no connect
+        public Connection GetConnection(int neighbourPort) {
+            this.neighbourConnections.TryGetValue(neighbourPort, out Connection res);
+            return res;
+        }
+
+        public void purgeNeighbour(int neighbourPort) {
+            this.neighbourConnections.Remove(neighbourPort);
+            this.neighbourSteps.Remove(neighbourPort);
+        }
+
+        public void purgeNode(int port) {
+            this.neighbourConnections.Remove(port);
+            this.neighbourSteps.Remove(port);
+            this.routes.Remove(port);
+        }
     }
 }
