@@ -19,19 +19,8 @@ namespace lab2 {
             // connections and routes to direct neighbours
             for (int i = 0; i < neighbours.Length; i++) {
                 this.neighbourDistances.Add(neighbours[i], new Dictionary<int, int>());
-                this.routes.        Add(home, new int[2] { 0, home });
-                this.routes.        Add(neighbours[i], new int[2] { 1, neighbours[i] });
-            }
-        }
-
-        public void UpdateNeighbourSteps(int neighbour, int port, int steps) {
-            if (!this.neighbourDistances.ContainsKey(neighbour)) {
-                Console.WriteLine("No neighbour found at " + neighbour);
-            } else {
-                if (this.neighbourDistances[neighbour].ContainsKey(port))
-                    this.neighbourDistances[neighbour][port] = steps;
-                else
-                    this.neighbourDistances[neighbour].Add(port, steps);
+                this.routes.            Add(home, new int[2] { 0, home });
+                this.routes.            Add(neighbours[i], new int[2] { 1, neighbours[i] });
             }
         }
 
@@ -58,7 +47,7 @@ namespace lab2 {
             return res;
         }
 
-        public void BreakConnection(int neighbourPort) {
+        public void RemoveConnection(int neighbourPort) {
             this.neighbourConnections.Remove(neighbourPort);
             this.neighbourDistances.Remove(neighbourPort);
         }
@@ -67,6 +56,8 @@ namespace lab2 {
             this.neighbourConnections.Remove(port);
             this.neighbourDistances.Remove(port);
             this.routes.Remove(port);
+
+            this.nodeCount--;
         }
 
         // updates the routing table's knowledge of the distance between neighbourPort and destinationPort
@@ -81,7 +72,8 @@ namespace lab2 {
 
         public void Recompute(int port) {
             int[] newRoute = new int[2];
-            // same as homeport
+
+            // compute new route
             if (this.homePort == port) {
                 newRoute[0] = 0; newRoute[1] = this.homePort;
             } else {
@@ -98,9 +90,13 @@ namespace lab2 {
                 }
             }
 
+            // update route with new route
             if (this.routes.TryGetValue(port, out int[] route)) {
                 route = newRoute;
-            } else this.routes.Add(port, newRoute);
+            } else {
+                this.routes.Add(port, newRoute);
+                this.nodeCount++;
+            }
         }
     }
 }
