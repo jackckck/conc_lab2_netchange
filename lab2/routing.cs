@@ -9,7 +9,7 @@ namespace lab2 {
         // key ^= neighbour's port int, value ^= Connection to neighbour
         private Dictionary<int, Connection> neighbourConnections = new Dictionary<int, Connection>();
         // key ^= neighbour's port int, value ^= dictionary for which: key ^= node, value ^= neighbour's distance to node
-        private Dictionary<int, Dictionary<int, int>> neighbourSteps = new Dictionary<int, Dictionary<int, int>>();
+        private Dictionary<int, Dictionary<int, int>> neighbourDistances = new Dictionary<int, Dictionary<int, int>>();
         // if route = routes[key], then route[0] is the amount of steps, and route[1] the preferred neighbour
         private Dictionary<int, int[]> routes = new Dictionary<int, int[]>();
 
@@ -18,38 +18,21 @@ namespace lab2 {
             this.nodeCount = 1 + neighbours.Length;
             // connections and routes to direct neighbours
             for (int i = 0; i < neighbours.Length; i++) {
-                this.neighbourSteps.Add(neighbours[i], new Dictionary<int, int>());
-                this.routes.Add(home, new int[2] { 0, home });
-                this.routes.Add(neighbours[i], new int[2] { 1, neighbours[i] });
+                this.neighbourDistances.Add(neighbours[i], new Dictionary<int, int>());
+                this.routes.        Add(home, new int[2] { 0, home });
+                this.routes.        Add(neighbours[i], new int[2] { 1, neighbours[i] });
             }
-        }
-
-        public int[] TryGetRoute(int port) {
-            // no route ;(
-            int[] res = new int[2] { -1, -1 };
-            this.routes.TryGetValue(port, out res);
-            return res;
         }
 
         public void UpdateNeighbourSteps(int neighbour, int port, int steps) {
-            if (!this.neighbourSteps.ContainsKey(neighbour)) {
+            if (!this.neighbourDistances.ContainsKey(neighbour)) {
                 Console.WriteLine("No neighbour found at " + neighbour);
             } else {
-                if (this.neighbourSteps[neighbour].ContainsKey(port))
-                    this.neighbourSteps[neighbour][port] = steps;
+                if (this.neighbourDistances[neighbour].ContainsKey(port))
+                    this.neighbourDistances[neighbour][port] = steps;
                 else
-                    this.neighbourSteps[neighbour].Add(port, steps);
+                    this.neighbourDistances[neighbour].Add(port, steps);
             }
-        }
-
-        public void Recompute(int port) {
-            int rSteps, rNb;
-            if (this.homePort == port) {
-                rSteps = 0; rNb = homePort;
-            } else {
-                // TODO opvragen
-            }
-            // this.routes[port] = new int[2] { rSteps, rNb };
         }
 
         public override string ToString() {
@@ -75,15 +58,49 @@ namespace lab2 {
             return res;
         }
 
-        public void purgeNeighbour(int neighbourPort) {
+        public void BreakConnection(int neighbourPort) {
             this.neighbourConnections.Remove(neighbourPort);
-            this.neighbourSteps.Remove(neighbourPort);
+            this.neighbourDistances.Remove(neighbourPort);
         }
 
-        public void purgeNode(int port) {
+        public void PurgeNode(int port) {
             this.neighbourConnections.Remove(port);
-            this.neighbourSteps.Remove(port);
+            this.neighbourDistances.Remove(port);
             this.routes.Remove(port);
+        }
+
+        // updates the routing table's knowledge of the distance between neighbourPort and destinationPort
+        public void UpdateNeighbourDistance(int neighbourPort, int destinationPort, int newDistance) {
+            if (this.neighbourDistances.TryGetValue(neighbourPort, out Dictionary<int, int> neighbourDistance)) {
+                if (neighbourDistance.TryGetValue(destinationPort, out int steps))
+                    steps = newDistance;
+                else
+                    neighbourDistance.Add(destinationPort, newDistance);
+            }
+        }
+
+        public void Recompute(int port) {
+            int[] newRoute = new int[2];
+            // same as homeport
+            if (this.homePort == port) {
+                newRoute[0] = 0; newRoute[1] = this.homePort;
+            } else {
+                int lowestDistance = this.nodeCount;
+                foreach(KeyValuePair<int, Dictionary<int, int>> neighbourDistance in this.neighbourDistances) {
+                    // if the neighbour knows its distance to the given node, and its distance is lower than that of all
+                    // the other neighbours, it becomes the preferred neighbour
+                    if (neighbourDistance.Value.TryGetValue(port, out int stepCount) && stepCount < lowestDistance) {
+                        // preferred neighbour's distance to port
+                        newRoute[0] = stepCount + 1;
+                        // preferred neighbour's port
+                        newRoute[1] = neighbourDistance.Key;
+                    }
+                }
+            }
+
+            if (this.routes.TryGetValue(port, out int[] route)) {
+                route = newRoute;
+            } else this.routes.Add(port, newRoute);
         }
     }
 }
