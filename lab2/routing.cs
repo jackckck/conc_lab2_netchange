@@ -18,10 +18,9 @@ namespace lab2 {
             this.nodeCount = 1 + neighbours.Length;
             // connections and routes to direct neighbours
             for (int i = 0; i < neighbours.Length; i++) {
-                this.neighbourConnections.Add(neighbours[i], new Connection(home, neighbours[i]));
-                this.neighbourSteps.      Add(neighbours[i], new Dictionary<int, int>());
-                this.routes.              Add(home, new int[2] { 0, home });
-                this.routes.              Add(neighbours[i], new int[2] { 1, neighbours[i] });
+                this.neighbourSteps.Add(neighbours[i], new Dictionary<int, int>());
+                this.routes.        Add(home, new int[2] { 0, home });
+                this.routes.        Add(neighbours[i], new int[2] { 1, neighbours[i] });
             }
         }
 
@@ -63,6 +62,29 @@ namespace lab2 {
                 res += "\n";
             }
             return res;
+        }
+
+        public void AddConnection(int neighbourPort, Connection c) {
+            if (this.neighbourConnections.ContainsKey(neighbourPort)) return;
+            this.neighbourConnections.Add(neighbourPort, c);
+        }
+
+        // returns null if no connect
+        public Connection Connection(int neighbourPort) {
+            Connection res = null;
+            this.neighbourConnections.TryGetValue(neighbourPort, out res);
+            return res;
+        }
+
+        public void purgeNeighbour(int neighbourPort) {
+            this.neighbourConnections.Remove(neighbourPort);
+            this.neighbourSteps.Remove(neighbourPort);
+        }
+
+        public void purgeNode(int port) {
+            if (this.neighbourConnections.ContainsKey(port)) this.neighbourConnections.Remove(port);
+            if (this.neighbourSteps.ContainsKey(port)) this.neighbourSteps.Remove(port);
+            if (this.routes.ContainsKey(port)) this.routes.Remove(port);
         }
     }
 }

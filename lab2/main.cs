@@ -6,16 +6,16 @@ namespace lab2 {
     public class Program {
         static void Main(string[] args) {
             // create a new instance with given args
-            new Instance(args);
+            new Node(args);
         }
     }
 
-    public class Instance {
+    public class Node {
         public int port;
         private int[] neighbourPorts;
         private RoutingTable routing;
 
-        public Instance(string[] ports) {
+        public Node(string[] ports) {
             // get own port and start listening
             Console.Title = "NetChange " + ports[0];
             this.port = Int32.Parse(ports[0]);
