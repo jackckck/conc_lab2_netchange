@@ -13,7 +13,7 @@ namespace lab2 {
         // if route = routes[key], then route[0] is the amount of steps, and route[1] the preferred neighbour
         private Dictionary<int, int[]> routes = new Dictionary<int, int[]>();
 
-        public RoutingTable(int homePort, int[] neighbours) {
+        public RoutingTable(int homePort) {
             this.homePort = homePort;
             this.routes[homePort] = new int[2] { 0, homePort };
             //this.nodeCount = 1 + neighbours.Length;

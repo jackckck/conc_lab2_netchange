@@ -20,12 +20,8 @@ namespace lab2 {
         public Node(string[] ports) {
             Console.Title = "NetChange " + ports[0];
 
-            // list all neighbour ports
-            int[] neighbourPorts = new int[ports.Length - 1];
-            for (int i = 1; i < ports.Length; i++) neighbourPorts[i - 1] = int.Parse(ports[i]);
-
             // instanciate routing table
-            this.routing = new RoutingTable(port, neighbourPorts);
+            this.routing = new RoutingTable(port);
 
             // get own port and start listening
             this.port = int.Parse(ports[0]);
@@ -34,7 +30,9 @@ namespace lab2 {
             new Thread(() => ListenConnection(server)).Start();
 
             // create connection with all neighbours
-            foreach (int neighbourPort in neighbourPorts) {
+            int neighbourPort;
+            foreach (string port in ports) {
+                neighbourPort = int.Parse(port);
                 // smallest portnumber requests connection
                 if (this.port < neighbourPort) AddConnection(neighbourPort);
             }
