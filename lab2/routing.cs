@@ -46,6 +46,7 @@ namespace lab2 {
             this.UpdateRoute(neighbourPort, 1, neighbourPort);
         }
 
+        // use with care, or just use recompute instead
         private void UpdateRoute(int port, int newDistance, int newPreferred) {
             if (this.routes.TryGetValue(port, out int[] route)) {
                 route[0] = newDistance; route[1] = newPreferred;
@@ -62,13 +63,14 @@ namespace lab2 {
         }
 
         // updates the routing table's knowledge of the distance between neighbourPort and destinationPort
-        // todo recompute?
         public void UpdateNeighbourDistance(int neighbourPort, int destinationPort, int newDistance) {
             if (this.neighbourDistances.TryGetValue(neighbourPort, out Dictionary<int, int> neighbourDistance)) {
                 if (neighbourDistance.TryGetValue(destinationPort, out int steps))
                     steps = newDistance;
                 else
                     neighbourDistance.Add(destinationPort, newDistance);
+
+                this.Recompute(destinationPort);
             }
         }
 
