@@ -28,7 +28,7 @@ namespace lab2 {
             this.routing = new RoutingTable(port, neighbourPorts);
 
             // get own port and start listening
-            this.port = Int32.Parse(ports[0]);
+            this.port = int.Parse(ports[0]);
             TcpListener server = new TcpListener(IPAddress.Any, this.port);
             server.Start();
             new Thread(() => ListenConnection(server)).Start();
@@ -93,24 +93,37 @@ namespace lab2 {
             goto loop;
         }
 
-        // todo process an incoming message
+        // process an incoming message
         private void ProcessMessage(string message) {
-            switch (message[0]) {
+            string[] command = message.Split(' ');
+            int farPort = int.Parse(command[0]);
+
+            // forward the message if it's meant for someone else
+            if (farPort != this.port) {
+                SendMessage(farPort, message);
+                return;
+            }
+
+            switch (command[1]) {
+                // message from neighbour
+                case "B":
+                    // todo fix string splitting
+                    Console.WriteLine(command[2]);
+                    break;
                 // connection from neighbour closed
-                case 'b':
+                case "D":
+                    // todo create
                     this.routing.RemoveConnection(SplitMessage(message)[0]);
                     break;
                 // distance update from neighbour
-                case 'd':
+                case "U":
+                    // todo create
                     int[] route = SplitMessage(message);
                     this.routing.UpdateNeighbourDistance(route[0], route[1], route[3]);
                     break;
-                // message from neighbour
-                case 'm':
-                    Console.WriteLine('m');
-                    break;
             }
 
+            // todo
             int[] SplitMessage(string m) {
                 // ex "c00001-65535-2"
                 string port0 = ""; string port1 = "";
