@@ -73,12 +73,12 @@ namespace lab2 {
             switch (command[0]) {
                 // print table
                 case "R":
-                    ShowTable();
+                    PrintTable();
                     break;
                 // send message
                 case "B":
                     // todo fix message splitting
-                    Send(int.Parse(command[1]), command[2]);
+                    SendMessage(int.Parse(command[1]), command[2]);
                     break;
                 // make connection
                 case "C":
@@ -86,7 +86,7 @@ namespace lab2 {
                     break;
                 // destroy connection
                 case "D":
-                    DestroyConnection(int.Parse(command[1]));
+                    RemoveConnection(int.Parse(command[1]));
                     break;
             }
 
@@ -126,22 +126,25 @@ namespace lab2 {
         #endregion
 
         // print the table
-        private void ShowTable() {
+        private void PrintTable() {
             Console.WriteLine(this.routing);
         }
 
         // send a message to a port
-        private void Send(int farPort, string message) {
-            routing.GetConnection(farPort).Send(message);
+        private void SendMessage(int farPort, string message) {
+            this.routing.GetConnection(farPort).Send(message);
         }
 
+        // add a connection
         private void AddConnection(int neighbourPort) {
-            // smallest portnumber requests connection
             this.routing.AddConnection(neighbourPort, new Connection(this.port, neighbourPort, ProcessMessage));
+            // todo notify neighbours
         }
 
-        private void DestroyConnection(int neighbourPort) {
-            // todo create
+        // remove a connection
+        private void RemoveConnection(int neighbourPort) {
+            this.routing.RemoveConnection(neighbourPort);
+            // todo notify neighbours
         }
     }
 }

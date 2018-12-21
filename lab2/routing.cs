@@ -22,36 +22,31 @@ namespace lab2 {
             string res = "";
             foreach (KeyValuePair<int, int[]> route in this.routes) {
                 res += route.Key + " " + route.Value[0] + " ";
-                // port == eigen port
                 if (route.Key == route.Value[1]) res += "local";
                 else res += route.Value[1];
                 res += "\n";
             }
+
             return res;
         }
 
-        public void AddConnection(int neighbourPort, Connection c) {
-            if (this.neighbourConnections.ContainsKey(neighbourPort)) return;
-            this.neighbourConnections.Add(neighbourPort, c);
-        }
-
+        // get the connection to a port
         // returns null if no connect
         public Connection GetConnection(int neighbourPort) {
             this.neighbourConnections.TryGetValue(neighbourPort, out Connection res);
             return res;
         }
 
+        // add a connection
+        public void AddConnection(int neighbourPort, Connection c) {
+            if (this.neighbourConnections.ContainsKey(neighbourPort)) return;
+            this.neighbourConnections.Add(neighbourPort, c);
+        }
+
+        // remove a connection
         public void RemoveConnection(int neighbourPort) {
             this.neighbourConnections.Remove(neighbourPort);
             this.neighbourDistances.Remove(neighbourPort);
-        }
-
-        public void PurgeNode(int port) {
-            this.neighbourConnections.Remove(port);
-            this.neighbourDistances.Remove(port);
-            this.routes.Remove(port);
-
-            this.nodeCount--;
         }
 
         // updates the routing table's knowledge of the distance between neighbourPort and destinationPort
@@ -64,7 +59,15 @@ namespace lab2 {
             }
         }
 
-        public void Recompute(int port) {
+        private void PurgeNode(int port) {
+            this.neighbourConnections.Remove(port);
+            this.neighbourDistances.Remove(port);
+            this.routes.Remove(port);
+
+            this.nodeCount--;
+        }
+
+        private void Recompute(int port) {
             int[] newRoute = new int[2];
 
             // compute new route
