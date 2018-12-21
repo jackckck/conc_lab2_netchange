@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Linq;
 using System.Collections.Generic;
 
 namespace lab2 {
@@ -37,6 +37,11 @@ namespace lab2 {
             return res;
         }
 
+        // get all the neighbour connections
+        public Connection[] GetNeighbourConnections() {
+            return neighbourConnections.Values.ToArray();
+        }
+
         // add a neighbour
         public void AddNeighbour(int neighbourPort, Connection c) {
             if (this.neighbourConnections.ContainsKey(neighbourPort)) return;
@@ -44,14 +49,6 @@ namespace lab2 {
 
             // new neighbour is its own preferred neighbour
             this.UpdateRoute(neighbourPort, 1, neighbourPort);
-        }
-
-        // use with care, or just use recompute instead
-        private void UpdateRoute(int port, int newDistance, int newPreferred) {
-            if (this.routes.TryGetValue(port, out int[] route)) {
-                route[0] = newDistance; route[1] = newPreferred;
-            } else
-                this.routes.Add(port, new int[2] { newDistance, newPreferred });
         }
 
         // remove a connection
@@ -65,15 +62,21 @@ namespace lab2 {
         // updates the routing table's knowledge of the distance between neighbourPort and destinationPort
         public void UpdateNeighbourDistance(int neighbourPort, int destinationPort, int newDistance) {
             if (this.neighbourDistances.TryGetValue(neighbourPort, out Dictionary<int, int> neighbourDistance)) {
-                if (neighbourDistance.TryGetValue(destinationPort, out int steps))
-                    steps = newDistance;
-                else
-                    neighbourDistance.Add(destinationPort, newDistance);
+                if (neighbourDistance.TryGetValue(destinationPort, out int steps)) steps = newDistance;
+                else neighbourDistance.Add(destinationPort, newDistance);
 
                 this.Recompute(destinationPort);
             }
         }
 
+        // use with care, or just use recompute instead
+        private void UpdateRoute(int port, int newDistance, int newPreferred) {
+            if (this.routes.TryGetValue(port, out int[] route)) {
+                route[0] = newDistance; route[1] = newPreferred;
+            } else
+                this.routes.Add(port, new int[2] { newDistance, newPreferred });
+        }
+        
         private void PurgeNode(int port) {
             this.neighbourConnections.Remove(port);
             this.neighbourDistances.Remove(port);
@@ -90,7 +93,7 @@ namespace lab2 {
                 newRoute[0] = 0; newRoute[1] = this.homePort;
             } else {
                 int lowestDistance = this.nodeCount;
-                foreach(KeyValuePair<int, Dictionary<int, int>> neighbourDistance in this.neighbourDistances) {
+                foreach (KeyValuePair<int, Dictionary<int, int>> neighbourDistance in this.neighbourDistances) {
                     // if the neighbour knows its distance to the given node, and its distance is lower than that of all
                     // the other neighbours, it becomes the preferred neighbour
                     if (neighbourDistance.Value.TryGetValue(farPort, out int stepCount) && stepCount < lowestDistance) {
