@@ -63,7 +63,7 @@ namespace lab2 {
         // updates the routing table's knowledge of the distance between neighbourPort and destinationPort
         public bool UpdateNeighbourDistance(int neighbourPort, int destinationPort, int newDistance) {
             if (this.neighbourDistances.TryGetValue(neighbourPort, out Dictionary<int, int> neighbourDistance)) {
-                if (neighbourDistance.TryGetValue(destinationPort, out int steps)) steps = newDistance;
+                if (neighbourDistance.TryGetValue(destinationPort, out int steps)) neighbourDistance[destinationPort] = newDistance;
                 else neighbourDistance.Add(destinationPort, newDistance);
 
                 return Recompute(destinationPort);
@@ -73,6 +73,7 @@ namespace lab2 {
         }
 
         // use with care, or just use recompute instead
+        // todo check for bugs
         private void UpdateRoute(int port, int newDistance, int newPreferred) {
             if (this.routes.TryGetValue(port, out int[] route)) {
                 route[0] = newDistance; route[1] = newPreferred;
