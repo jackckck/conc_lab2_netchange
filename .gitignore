@@ -3,3 +3,6 @@ bin/
 obj/
 dist/
 packages/
+
+report.csv
+TomJudge2.exe

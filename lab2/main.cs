@@ -66,7 +66,7 @@ namespace lab2 {
             routing.GetConnection(farPort).Send(message);
         }
 
-        // process an incoming message
+        // todo process an incoming message
         private void ProcessMessage(string message) {
             switch (message[0]) {
                 // new connection from neighbour 
