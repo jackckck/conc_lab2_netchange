@@ -111,14 +111,9 @@ namespace lab2 {
                     Console.WriteLine(command[2]);
                     break;
                 // connection from neighbour closed
-<<<<<<< HEAD
-                case 'b':
-                    this.routing.RemoveNeighbour(SplitMessage(message)[0]);
-=======
                 case "D":
                     // todo create
-                    this.routing.RemoveConnection(SplitMessage(message)[0]);
->>>>>>> fbaff635a52af0ff98c395e2d953f90d33582ca2
+                    this.routing.RemoveNeighbour(SplitMessage(message)[0]);
                     break;
                 // distance update from neighbour
                 case "U":
