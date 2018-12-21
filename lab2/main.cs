@@ -96,7 +96,10 @@ namespace lab2 {
                 case "B":
                     // forward the message if it's meant for someone else
                     int farPort = int.Parse(command[1]);
-                    if (farPort != this.port) SendMessageToPort(farPort, message);
+                    if (farPort != this.port) {
+                        SendMessageToPort(farPort, message);
+                        Console.WriteLine(string.Format("Bericht voor {0} doorgestuurd naar {1}", farPort, -1)); // todo correct poortnummer
+                    }
                     // todo fix message splitting
                     else Console.WriteLine(command[2]);
                     break;

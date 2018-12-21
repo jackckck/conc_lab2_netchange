@@ -5,16 +5,16 @@ using System.Net.Sockets;
 
 namespace lab2 {
     public class Connection {
-        private StreamReader Reader;
-        private StreamWriter Writer;
+        private StreamReader reader;
+        private StreamWriter writer;
         private Node node;
 
         // constructor for client
         public Connection(int port, int neighbourPort, Node node) {
             // initiate reader and writer
             TcpClient client = new TcpClient("localhost", neighbourPort);
-            this.Reader = new StreamReader(client.GetStream());
-            this.Writer = new StreamWriter(client.GetStream()) { AutoFlush = true };
+            this.reader = new StreamReader(client.GetStream());
+            this.writer = new StreamWriter(client.GetStream()) { AutoFlush = true };
             this.node = node;
 
             // tell neighbour our port
@@ -25,8 +25,8 @@ namespace lab2 {
 
         // constructor for server
         public Connection(StreamReader read, StreamWriter write, Node node) {
-            this.Reader = read;
-            this.Writer = write;
+            this.reader = read;
+            this.writer = write;
             this.node = node;
 
             new Thread(Listen).Start();
@@ -34,13 +34,13 @@ namespace lab2 {
 
         // send message
         public void Send(string message) {
-            this.Writer.WriteLine(message);
+            this.writer.WriteLine(message);
         }
 
         // pass messages over to message processer.
         private void Listen() {
-            try { while (true) this.node.ProcessMessage(this.Reader.ReadLine()); }
-            catch (Exception e) { Console.WriteLine("error x d " + e); } // todo print verbroken
+            try { while (true) this.node.ProcessMessage(this.reader.ReadLine()); }
+            catch (IOException) { Console.WriteLine("Verbroken: " + -1); } // todo correct poortnummer
         }
     }
 }

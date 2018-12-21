@@ -75,7 +75,6 @@ namespace lab2 {
         }
 
         // use with care, or just use recompute instead
-        // todo check for bugs
         private void UpdateRoute(int port, int newDistance, int newPreferred) {
             this.routes[port] = new int[2] { newDistance, newPreferred };
         }
