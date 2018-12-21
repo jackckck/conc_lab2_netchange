@@ -13,15 +13,9 @@ namespace lab2 {
         // if route = routes[key], then route[0] is the amount of steps, and route[1] the preferred neighbour
         private Dictionary<int, int[]> routes = new Dictionary<int, int[]>();
 
-        public RoutingTable(int home, int[] neighbours) {
-            this.homePort = home;
+        public RoutingTable(int homePort, int[] neighbours) {
+            this.homePort = homePort;
             this.nodeCount = 1 + neighbours.Length;
-            // connections and routes to direct neighbours
-            for (int i = 0; i < neighbours.Length; i++) {
-                this.neighbourDistances.Add(neighbours[i], new Dictionary<int, int>());
-                this.routes.            Add(home, new int[2] { 0, home });
-                this.routes.            Add(neighbours[i], new int[2] { 1, neighbours[i] });
-            }
         }
 
         public override string ToString() {

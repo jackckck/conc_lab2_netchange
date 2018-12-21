@@ -13,7 +13,7 @@ namespace lab2 {
     }
 
     public class Node {
-        public int port;
+        private int port;
         private RoutingTable routing;
 
         // constructor
@@ -38,8 +38,12 @@ namespace lab2 {
                 // smallest portnumber requests connection
                 if (this.port < neighbourPort) AddConnection(neighbourPort);
             }
+
+            // listen on the console
+            ListenConsole();
         }
 
+        #region string processing
         // continiously accept new connections
         private void ListenConnection(TcpListener handle) {
             loop:
@@ -61,39 +65,74 @@ namespace lab2 {
             goto loop;
         }
 
-        // send a message to a port
-        private void Send(int farPort, string message) {
-            routing.GetConnection(farPort).Send(message);
+        // continiously read the console
+        private void ListenConsole() {
+            loop:
+
+            string[] command = Console.ReadLine().Split(' ');
+            switch (command[0]) {
+                // print table
+                case "R":
+                    ShowTable();
+                    break;
+                // send message
+                case "B":
+                    // todo fix message splitting
+                    Send(int.Parse(command[1]), command[2]);
+                    break;
+                // make connection
+                case "C":
+                    AddConnection(int.Parse(command[1]));
+                    break;
+                // destroy connection
+                case "D":
+                    DestroyConnection(int.Parse(command[1]));
+                    break;
+            }
+
+            goto loop;
         }
 
         // todo process an incoming message
         private void ProcessMessage(string message) {
             switch (message[0]) {
-                // connection from neighbour lost
+                // connection from neighbour closed
                 case 'b':
-                    this.routing.RemoveConnection(this.SplitMessage(message)[0]);
+                    this.routing.RemoveConnection(SplitMessage(message)[0]);
                     break;
-                // message from neighbour to update its distance from a certain node
+                // distance update from neighbour
                 case 'd':
-                    int[] route = this.SplitMessage(message);
+                    int[] route = SplitMessage(message);
                     this.routing.UpdateNeighbourDistance(route[0], route[1], route[3]);
                     break;
+                // message from neighbour
                 case 'm':
-                    Console.WriteLine(m);
+                    Console.WriteLine('m');
                     break;
             }
+
+            int[] SplitMessage(string m) {
+                // ex "c00001-65535-2"
+                string port0 = ""; string port1 = "";
+                string distance = "";
+
+                for (int i = 1; i < 6; i++) port0 += m[i];
+                for (int j = 7; j < 12; j++) port1 += m[j];
+                for (int k = 13; k < m.Length; k++) distance += m[k];
+
+                return new int[3] { Int32.Parse(port0), Int32.Parse(port1), Int32.Parse(distance) };
+            }
+        }
+        #endregion
+
+        // print the table
+        private void ShowTable() {
+            Console.WriteLine(this.routing);
         }
 
-        private int[] SplitMessage(string message) {
-            // bijvoorbeeld "c00001-65535-2"
-            string port0 = ""; string port1 = "";
-            string distance = "";
-
-            for (int i = 1; i < 6; i++) port0 += message[i];
-            for (int j = 7; j < 12; j++) port1 += message[j];
-            for (int k = 13; k < message.Length; k++) distance += message[k];
-
-            return new int[3] { Int32.Parse(port0), Int32.Parse(port1), Int32.Parse(distance) };
+        // send a message to a port
+        private void Send(int farPort, string message) {
+            routing.GetConnection(farPort).Send(message);
         }
 
         private void AddConnection(int neighbourPort) {
@@ -103,10 +142,6 @@ namespace lab2 {
 
         private void DestroyConnection(int neighbourPort) {
             // todo create
-        }
-
-        private void ShowTable() {
-            Console.WriteLine(this.routing);
         }
     }
 }
