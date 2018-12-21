@@ -37,16 +37,28 @@ namespace lab2 {
             return res;
         }
 
-        // add a connection
-        public void AddConnection(int neighbourPort, Connection c) {
+        // add a neighbour
+        public void AddNeighbour(int neighbourPort, Connection c) {
             if (this.neighbourConnections.ContainsKey(neighbourPort)) return;
             this.neighbourConnections.Add(neighbourPort, c);
+
+            // new neighbour is its own preferred neighbour
+            this.UpdateRoute(neighbourPort, 1, neighbourPort);
+        }
+
+        private void UpdateRoute(int port, int newDistance, int newPreferred) {
+            if (this.routes.TryGetValue(port, out int[] route)) {
+                route[0] = newDistance; route[1] = newPreferred;
+            } else
+                this.routes.Add(port, new int[2] { newDistance, newPreferred });
         }
 
         // remove a connection
-        public void RemoveConnection(int neighbourPort) {
+        public void RemoveNeighbour(int neighbourPort) {
             this.neighbourConnections.Remove(neighbourPort);
             this.neighbourDistances.Remove(neighbourPort);
+
+            this.Recompute(neighbourPort);
         }
 
         // updates the routing table's knowledge of the distance between neighbourPort and destinationPort

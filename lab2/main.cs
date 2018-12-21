@@ -58,7 +58,7 @@ namespace lab2 {
 
             // add connection to routing table
             Connection connection = new Connection(neighbourIn, neighbourOut, ProcessMessage);
-            this.routing.AddConnection(neighbourPort, connection);
+            this.routing.AddNeighbour(neighbourPort, connection);
 
             Console.WriteLine("Verbonden: " + neighbourPort);
 
@@ -98,7 +98,7 @@ namespace lab2 {
             switch (message[0]) {
                 // connection from neighbour closed
                 case 'b':
-                    this.routing.RemoveConnection(SplitMessage(message)[0]);
+                    this.routing.RemoveNeighbour(SplitMessage(message)[0]);
                     break;
                 // distance update from neighbour
                 case 'd':
@@ -137,13 +137,13 @@ namespace lab2 {
 
         // add a connection
         private void AddConnection(int neighbourPort) {
-            this.routing.AddConnection(neighbourPort, new Connection(this.port, neighbourPort, ProcessMessage));
+            this.routing.AddNeighbour(neighbourPort, new Connection(this.port, neighbourPort, ProcessMessage));
             // todo notify neighbours
         }
 
         // remove a connection
         private void RemoveConnection(int neighbourPort) {
-            this.routing.RemoveConnection(neighbourPort);
+            this.routing.RemoveNeighbour(neighbourPort);
             // todo notify neighbours
         }
     }
