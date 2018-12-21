@@ -90,21 +90,23 @@ namespace lab2 {
             // compute new route
             if (this.homePort == farPort) {
                 newRoute[0] = 0; newRoute[1] = this.homePort;
-            } else {
-                // int lowestDistance = this.nodeCount;
-                int lowestDistance = 20;
-                foreach (KeyValuePair<int, Dictionary<int, int>> neighbourDistance in this.neighbourDistances) {
-                    // if the neighbour knows its distance to the given node, and its distance is lower than that of all
-                    // the other neighbours, it becomes the preferred neighbour
-                    if (neighbourDistance.Value.TryGetValue(farPort, out int stepCount) && stepCount < lowestDistance) {
-                        lowestDistance = stepCount;
-                        // preferred neighbour's distance to port + 1
-                        newRoute[0] = stepCount + 1;
-                        // preferred neighbour's port
-                        newRoute[1] = neighbourDistance.Key;
-                    }
+                return false;
+            }
+
+            // int lowestDistance = this.nodeCount;
+            int lowestDistance = 20;
+            foreach (KeyValuePair<int, Dictionary<int, int>> neighbourDistance in this.neighbourDistances) {
+                // if the neighbour knows its distance to the given node, and its distance is lower than that of all
+                // the other neighbours, it becomes the preferred neighbour
+                if (neighbourDistance.Value.TryGetValue(farPort, out int stepCount) && stepCount < lowestDistance) {
+                    lowestDistance = stepCount;
+                    // preferred neighbour's distance to port + 1
+                    newRoute[0] = stepCount + 1;
+                    // preferred neighbour's port
+                    newRoute[1] = neighbourDistance.Key;
                 }
             }
+
             // update route with new route
             bool res = this.routes.TryGetValue(farPort, out int[] route) && route == newRoute;
             this.routes[farPort] = newRoute;
