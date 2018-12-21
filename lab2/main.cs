@@ -69,22 +69,31 @@ namespace lab2 {
         // process an incoming message
         private void ProcessMessage(string message) {
             switch (message[0]) {
-                // new connection from neighbour 
-                case 'c':
-
-                    break;
                 // connection from neighbour lost
                 case 'b':
-
+                    this.routing.RemoveConnection(this.SplitMessage(message)[0]);
                     break;
-                // 
+                // message from neighbour to update its distance from a certain node
                 case 'd':
-
+                    int[] route = this.SplitMessage(message);
+                    this.routing.UpdateNeighbourDistance(route[0], route[1], route[3]);
                     break;
                 case 'm':
-
+                    Console.WriteLine(m);
                     break;
             }
+        }
+
+        private int[] SplitMessage(string message) {
+            // bijvoorbeeld "c00001-65535-2"
+            string port0 = ""; string port1 = "";
+            string distance = "";
+
+            for (int i = 1; i < 6; i++) port0 += message[i];
+            for (int j = 7; j < 12; j++) port1 += message[j];
+            for (int k = 13; k < message.Length; k++) distance += message[k];
+
+            return new int[3] { Int32.Parse(port0), Int32.Parse(port1), Int32.Parse(distance) };
         }
 
         private void AddConnection(int neighbourPort) {
