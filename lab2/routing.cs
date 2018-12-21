@@ -31,6 +31,10 @@ namespace lab2 {
             return res;
         }
 
+        public Dictionary<int, int[]> getRoutes() {
+            return this.routes;
+        }
+
         // returns null if no route
         public Connection GetConnection(int farPort) {
             if (this.routes.TryGetValue(farPort, out int[] route) &&

@@ -3,6 +3,7 @@ using System.IO;
 using System.Net;
 using System.Threading;
 using System.Net.Sockets;
+using System.Collections.Generic;
 
 namespace lab2 {
     public class Program {
@@ -49,7 +50,7 @@ namespace lab2 {
                 TcpClient newNeighbour = handle.AcceptTcpClient();
                 StreamReader neighbourIn = new StreamReader(newNeighbour.GetStream());
                 StreamWriter neighbourOut = new StreamWriter(newNeighbour.GetStream()) { AutoFlush = true };
-                
+
                 // read connecting port
                 int neighbourPort = int.Parse(neighbourIn.ReadLine());
 
@@ -135,12 +136,14 @@ namespace lab2 {
         // add a connection
         private void AddConnection(int neighbourPort) {
             this.routing.AddNeighbour(neighbourPort, new Connection(this.port, neighbourPort, this));
-            SendMessageToPort(neighbourPort, string.Format("U {0} {1} {2}", this.port, this.port, 0));
-            SendMessageToNeighbours(string.Format("U {0} {1} {2}", this.port, neighbourPort, 1));
+            InformNeighbours(neighbourPort);
         }
         private void AddConnection(int neighbourPort, Connection connection) {
             this.routing.AddNeighbour(neighbourPort, connection);
-            SendMessageToPort(neighbourPort, string.Format("U {0} {1} {2}", this.port, this.port, 0));
+            InformNeighbours(neighbourPort);
+        }
+        private void InformNeighbours(int neighbourPort) {
+            foreach (KeyValuePair<int, int[]> route in this.routing.getRoutes()) SendMessageToPort(neighbourPort, string.Format("U {0} {1} {2}", this.port, route.Key, route.Value[0]));
             SendMessageToNeighbours(string.Format("U {0} {1} {2}", this.port, neighbourPort, 1));
         }
 
