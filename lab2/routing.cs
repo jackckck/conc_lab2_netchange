@@ -63,8 +63,12 @@ namespace lab2 {
         // updates the routing table's knowledge of the distance between neighbourPort and destinationPort
         public void UpdateNeighbourDistance(int neighbourPort, int destinationPort, int newDistance) {
             if (this.neighbourDistances.TryGetValue(neighbourPort, out Dictionary<int, int> neighbourDistance)) {
-                if (neighbourDistance.TryGetValue(destinationPort, out int steps)) steps = newDistance;
+                if (neighbourDistance.ContainsKey(neighbourPort)) {
+                    neighbourDistance[destinationPort] = newDistance;
+                }
                 else neighbourDistance.Add(destinationPort, newDistance);
+
+                neighbourDistances[destinationPort] = neighbourDistance;
 
                 this.Recompute(destinationPort);
             }
