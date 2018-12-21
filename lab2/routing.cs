@@ -94,7 +94,7 @@ namespace lab2 {
                     // if the neighbour knows its distance to the given node, and its distance is lower than that of all
                     // the other neighbours, it becomes the preferred neighbour
                     if (neighbourDistance.Value.TryGetValue(farPort, out int stepCount) && stepCount < lowestDistance) {
-                        // preferred neighbour's distance to port
+                        // preferred neighbour's distance to port + 1
                         newRoute[0] = stepCount + 1;
                         // preferred neighbour's port
                         newRoute[1] = neighbourDistance.Key;
