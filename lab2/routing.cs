@@ -15,7 +15,7 @@ namespace lab2 {
 
         public RoutingTable(int homePort, int[] neighbours) {
             this.homePort = homePort;
-            this.nodeCount = 1 + neighbours.Length;
+            //this.nodeCount = 1 + neighbours.Length;
         }
 
         public override string ToString() {
@@ -43,6 +43,7 @@ namespace lab2 {
             return neighbourConnections.Values.ToArray();
         }
 
+
         // add a neighbour
         public void AddNeighbour(int neighbourPort, Connection c) {
             this.neighbourConnections[neighbourPort] = c;
@@ -61,25 +62,11 @@ namespace lab2 {
         }
 
         // updates the routing table's knowledge of the distance between neighbourPort and destinationPort
-        public bool UpdateNeighbourDistance(int neighbourPort, int destinationPort, int newDistance) {
-            if (this.neighbourDistances.TryGetValue(neighbourPort, out Dictionary<int, int> neighbourDistance)) {
-
-                if (neighbourDistance.TryGetValue(destinationPort, out int steps)) neighbourDistance[destinationPort] = newDistance;
-                else neighbourDistance.Add(destinationPort, newDistance);
-
-                this.neighbourDistances[neighbourPort] = neighbourDistance;
-
-                return Recompute(destinationPort);
-            } 
-            // waarschijnlijk overbodig maar even voor de zekerheid
-            else {
-                Dictionary<int, int> newNeighbourDistance = new Dictionary<int, int>();
-                newNeighbourDistance.Add(destinationPort, newDistance);
-
-                this.neighbourDistances.Add(neighbourPort, newNeighbourDistance);
+        public bool UpdateNeighbourDistance(int neighbourPort, int farPort, int newDistance) {
+            if (this.neighbourDistances.TryGetValue(neighbourPort, out Dictionary<int, int> distances)) {
+                distances[farPort] = newDistance;
             }
-
-            throw new System.ArgumentException("This port is not known to this node");
+            return Recompute(farPort);
         }
 
         // use with care, or just use recompute instead
@@ -93,7 +80,7 @@ namespace lab2 {
             this.neighbourDistances.Remove(port);
             this.routes.Remove(port);
 
-            this.nodeCount--;
+            //this.nodeCount--;
         }
 
         private bool Recompute(int farPort) {
@@ -103,7 +90,8 @@ namespace lab2 {
             if (this.homePort == farPort) {
                 newRoute[0] = 0; newRoute[1] = this.homePort;
             } else {
-                int lowestDistance = this.nodeCount;
+                // int lowestDistance = this.nodeCount;
+                int lowestDistance = 20;
                 foreach (KeyValuePair<int, Dictionary<int, int>> neighbourDistance in this.neighbourDistances) {
                     // if the neighbour knows its distance to the given node, and its distance is lower than that of all
                     // the other neighbours, it becomes the preferred neighbour
@@ -117,16 +105,9 @@ namespace lab2 {
             }
 
             // update route with new route
-            if (this.routes.TryGetValue(farPort, out int[] route)) {
-                if (route != newRoute) {
-                    this.routes[farPort] = newRoute;
-                    return true;
-                } else return false;
-            } else {
-                this.routes.Add(farPort, newRoute);
-                this.nodeCount++;
-                return true;
-            }
+            bool res = this.routes.TryGetValue(farPort, out int[] route) && route == newRoute;
+            this.routes[farPort] = newRoute;
+            return res;
         }
     }
 }
