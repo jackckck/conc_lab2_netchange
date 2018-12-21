@@ -46,55 +46,50 @@ namespace lab2 {
         #region string processing
         // continiously accept new connections
         private void ListenConnection(TcpListener handle) {
-            loop:
+            while (true) {
+                // create readers for new connection
+                TcpClient newNeighbour = handle.AcceptTcpClient();
+                StreamReader neighbourIn = new StreamReader(newNeighbour.GetStream());
+                StreamWriter neighbourOut = new StreamWriter(newNeighbour.GetStream()) { AutoFlush = true };
+                
+                // read connecting port
+                int neighbourPort = int.Parse(neighbourIn.ReadLine());
 
-            // create readers for new connection
-            TcpClient newNeighbour = handle.AcceptTcpClient();
-            StreamReader neighbourIn = new StreamReader(newNeighbour.GetStream());
-            StreamWriter neighbourOut = new StreamWriter(newNeighbour.GetStream()) { AutoFlush = true };
-
-            // read connecting port
-            int neighbourPort = int.Parse(neighbourIn.ReadLine());
-
-            // add connection to routing table
-            Connection connection = new Connection(neighbourIn, neighbourOut, ProcessMessage);
-            AddConnection(neighbourPort, connection);
-
-            Console.WriteLine("Verbonden: " + neighbourPort);
-
-            goto loop;
+                // add connection to routing table
+                Connection connection = new Connection(neighbourIn, neighbourOut, this);
+                AddConnection(neighbourPort, connection);
+                Console.WriteLine("Verbonden: " + neighbourPort);
+            }
         }
 
         // continiously read the console
         private void ListenConsole() {
-            loop:
-
-            string[] command = Console.ReadLine().Split(' ');
-            switch (command[0]) {
-                // print table
-                case "R":
-                    PrintTable();
-                    break;
-                // send message
-                case "B":
-                    // todo fix message splitting
-                    SendMessageToPort(int.Parse(command[1]), command[2]);
-                    break;
-                // make connection
-                case "C":
-                    AddConnection(int.Parse(command[1]));
-                    break;
-                // destroy connection
-                case "D":
-                    RemoveConnection(int.Parse(command[1]));
-                    break;
+            while (true) {
+                string[] command = Console.ReadLine().Split(' ');
+                switch (command[0]) {
+                    // print table
+                    case "R":
+                        PrintTable();
+                        break;
+                    // send message
+                    case "B":
+                        // todo fix message splitting
+                        SendMessageToPort(int.Parse(command[1]), command[2]);
+                        break;
+                    // make connection
+                    case "C":
+                        AddConnection(int.Parse(command[1]));
+                        break;
+                    // destroy connection
+                    case "D":
+                        RemoveConnection(int.Parse(command[1]));
+                        break;
+                }
             }
-
-            goto loop;
         }
 
         // process an incoming message
-        private void ProcessMessage(string message) {
+        public void ProcessMessage(string message) {
             string[] command = message.Split(' ');
 
             switch (command[0]) {
@@ -141,11 +136,13 @@ namespace lab2 {
 
         // add a connection
         private void AddConnection(int neighbourPort) {
-            this.routing.AddNeighbour(neighbourPort, new Connection(this.port, neighbourPort, ProcessMessage));
+            this.routing.AddNeighbour(neighbourPort, new Connection(this.port, neighbourPort, this));
+            SendMessageToPort(neighbourPort, string.Format("U {0} {1} {2}", this.port, this.port, 0));
             SendMessageToNeighbours(string.Format("U {0} {1} {2}", this.port, neighbourPort, 1));
         }
         private void AddConnection(int neighbourPort, Connection connection) {
             this.routing.AddNeighbour(neighbourPort, connection);
+            SendMessageToPort(neighbourPort, string.Format("U {0} {1} {2}", this.port, this.port, 0));
             SendMessageToNeighbours(string.Format("U {0} {1} {2}", this.port, neighbourPort, 1));
         }
 
