@@ -32,8 +32,8 @@ namespace lab2 {
 
         // returns null if no route
         public Connection GetConnection(int farPort) {
-            if (this.routes.TryGetValue(farPort, out int[] route)
-                && this.neighbourConnections.TryGetValue(route[1], out Connection res))
+            if (this.routes.TryGetValue(farPort, out int[] route) &&
+                this.neighbourConnections.TryGetValue(route[1], out Connection res))
                     return res;
             return null;
         }
@@ -53,21 +53,23 @@ namespace lab2 {
         }
 
         // remove a connection
-        public void RemoveNeighbour(int neighbourPort) {
+        public bool RemoveNeighbour(int neighbourPort) {
             this.neighbourConnections.Remove(neighbourPort);
             this.neighbourDistances.Remove(neighbourPort);
 
-            this.Recompute(neighbourPort);
+            return Recompute(neighbourPort);
         }
 
         // updates the routing table's knowledge of the distance between neighbourPort and destinationPort
-        public void UpdateNeighbourDistance(int neighbourPort, int destinationPort, int newDistance) {
+        public bool UpdateNeighbourDistance(int neighbourPort, int destinationPort, int newDistance) {
             if (this.neighbourDistances.TryGetValue(neighbourPort, out Dictionary<int, int> neighbourDistance)) {
                 if (neighbourDistance.TryGetValue(destinationPort, out int steps)) steps = newDistance;
                 else neighbourDistance.Add(destinationPort, newDistance);
 
-                this.Recompute(destinationPort);
+                return Recompute(destinationPort);
             }
+
+            throw new System.ArgumentException("This port is not known to this node");
         }
 
         // use with care, or just use recompute instead
@@ -86,7 +88,7 @@ namespace lab2 {
             this.nodeCount--;
         }
 
-        private void Recompute(int farPort) {
+        private bool Recompute(int farPort) {
             int[] newRoute = new int[2];
 
             // compute new route
@@ -108,10 +110,14 @@ namespace lab2 {
 
             // update route with new route
             if (this.routes.TryGetValue(farPort, out int[] route)) {
-                route = newRoute;
+                if (route != newRoute) {
+                    route = newRoute;
+                    return true;
+                } else return false;
             } else {
                 this.routes.Add(farPort, newRoute);
                 this.nodeCount++;
+                return true;
             }
         }
     }
