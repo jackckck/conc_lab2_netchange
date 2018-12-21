@@ -87,11 +87,12 @@ namespace lab2 {
         private bool Recompute(int farPort) {
             int[] newRoute = new int[2];
 
-            // compute new route
             if (this.homePort == farPort) {
-                newRoute[0] = 0; newRoute[1] = this.homePort;
+                this.routes[farPort] = new int[2] { 0, homePort };
                 return false;
             }
+
+            // compute new route
 
             // int lowestDistance = this.nodeCount;
             int lowestDistance = 20;
