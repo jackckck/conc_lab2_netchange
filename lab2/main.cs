@@ -58,7 +58,7 @@ namespace lab2 {
 
             // add connection to routing table
             Connection connection = new Connection(neighbourIn, neighbourOut, ProcessMessage);
-            this.routing.AddNeighbour(neighbourPort, connection);
+            AddConnection(neighbourPort, connection);
 
             Console.WriteLine("Verbonden: " + neighbourPort);
 
@@ -110,14 +110,13 @@ namespace lab2 {
                 case "D":
                     int neighbourPort = int.Parse(command[1]);
                     if (this.routing.RemoveNeighbour(neighbourPort)) {
-                        // todo format
-                        SendMessageToNeighbours(string.Format("U {0} {1} {2}", this.port, neighbourPort, ));
+                        // todo get distance
+                        SendMessageToNeighbours(string.Format("U {0} {1} {2}", this.port, neighbourPort, "???"));
                     }
                     break;
                 // distance update from neighbour
                 case "U":
                     if (this.routing.UpdateNeighbourDistance(int.Parse(command[1]), int.Parse(command[2]), int.Parse(command[3]))) {
-                        // todo naar iedereen doorsturen?
                         SendMessageToNeighbours(message);
                     }
                     break;
@@ -145,11 +144,15 @@ namespace lab2 {
             this.routing.AddNeighbour(neighbourPort, new Connection(this.port, neighbourPort, ProcessMessage));
             SendMessageToNeighbours(string.Format("U {0} {1} {2}", this.port, neighbourPort, 1));
         }
+        private void AddConnection(int neighbourPort, Connection connection) {
+            this.routing.AddNeighbour(neighbourPort, connection);
+            SendMessageToNeighbours(string.Format("U {0} {1} {2}", this.port, neighbourPort, 1));
+        }
 
         // remove a connection
         private void RemoveConnection(int neighbourPort) {
             this.routing.RemoveNeighbour(neighbourPort);
-            // todo format
+            // todo get distance
             SendMessageToNeighbours(string.Format("U {0} {1} {2}", this.port, neighbourPort, "???"));
         }
     }

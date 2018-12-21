@@ -32,8 +32,8 @@ namespace lab2 {
 
         // returns null if no route
         public Connection GetConnection(int farPort) {
-            if (this.routes.TryGetValue(farPort, out int[] route)
-                && this.neighbourConnections.TryGetValue(route[1], out Connection res))
+            if (this.routes.TryGetValue(farPort, out int[] route) &&
+                this.neighbourConnections.TryGetValue(route[1], out Connection res))
                     return res;
             return null;
         }
@@ -45,41 +45,47 @@ namespace lab2 {
 
         // add a neighbour
         public void AddNeighbour(int neighbourPort, Connection c) {
-            if (this.neighbourConnections.ContainsKey(neighbourPort)) return;
-            this.neighbourConnections.Add(neighbourPort, c);
+            this.neighbourConnections[neighbourPort] = c;
+            this.neighbourDistances[neighbourPort] = new Dictionary<int, int>();
 
             // new neighbour is its own preferred neighbour
             this.UpdateRoute(neighbourPort, 1, neighbourPort);
         }
 
         // remove a connection
-        public void RemoveNeighbour(int neighbourPort) {
+        public bool RemoveNeighbour(int neighbourPort) {
             this.neighbourConnections.Remove(neighbourPort);
             this.neighbourDistances.Remove(neighbourPort);
 
-            this.Recompute(neighbourPort);
+            return Recompute(neighbourPort);
         }
 
         // updates the routing table's knowledge of the distance between neighbourPort and destinationPort
-        public void UpdateNeighbourDistance(int neighbourPort, int destinationPort, int newDistance) {
+        public bool UpdateNeighbourDistance(int neighbourPort, int destinationPort, int newDistance) {
             if (this.neighbourDistances.TryGetValue(neighbourPort, out Dictionary<int, int> neighbourDistance)) {
-                if (neighbourDistance.ContainsKey(neighbourPort)) {
-                    neighbourDistance[destinationPort] = newDistance;
-                }
+
+                if (neighbourDistance.TryGetValue(destinationPort, out int steps)) neighbourDistance[destinationPort] = newDistance;
                 else neighbourDistance.Add(destinationPort, newDistance);
 
-                neighbourDistances[destinationPort] = neighbourDistance;
+                this.neighbourDistances[neighbourPort] = neighbourDistance;
 
-                this.Recompute(destinationPort);
+                return Recompute(destinationPort);
+            } 
+            // waarschijnlijk overbodig maar even voor de zekerheid
+            else {
+                Dictionary<int, int> newNeighbourDistance = new Dictionary<int, int>();
+                newNeighbourDistance.Add(destinationPort, newDistance);
+
+                this.neighbourDistances.Add(neighbourPort, newNeighbourDistance);
             }
+
+            throw new System.ArgumentException("This port is not known to this node");
         }
 
         // use with care, or just use recompute instead
+        // todo check for bugs
         private void UpdateRoute(int port, int newDistance, int newPreferred) {
-            if (this.routes.TryGetValue(port, out int[] route)) {
-                route[0] = newDistance; route[1] = newPreferred;
-            } else
-                this.routes.Add(port, new int[2] { newDistance, newPreferred });
+            this.routes[port] = new int[2] { newDistance, newPreferred };
         }
         
         private void PurgeNode(int port) {
@@ -90,7 +96,7 @@ namespace lab2 {
             this.nodeCount--;
         }
 
-        private void Recompute(int farPort) {
+        private bool Recompute(int farPort) {
             int[] newRoute = new int[2];
 
             // compute new route
@@ -112,10 +118,14 @@ namespace lab2 {
 
             // update route with new route
             if (this.routes.TryGetValue(farPort, out int[] route)) {
-                route = newRoute;
+                if (route != newRoute) {
+                    this.routes[farPort] = newRoute;
+                    return true;
+                } else return false;
             } else {
                 this.routes.Add(farPort, newRoute);
                 this.nodeCount++;
+                return true;
             }
         }
     }
