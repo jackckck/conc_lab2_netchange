@@ -23,7 +23,7 @@ namespace lab2 {
             string res = "";
             foreach (KeyValuePair<int, int[]> route in this.routes) {
                 res += route.Key + " " + route.Value[0] + " ";
-                if (route.Key == route.Value[1]) res += "local";
+                if (route.Key == this.homePort) res += "local";
                 else res += route.Value[1];
                 res += "\n";
             }
