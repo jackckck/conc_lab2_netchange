@@ -15,6 +15,7 @@ namespace lab2 {
 
         public RoutingTable(int homePort, int[] neighbours) {
             this.homePort = homePort;
+            this.routes[homePort] = new int[2] { 0, homePort };
             //this.nodeCount = 1 + neighbours.Length;
         }
 
@@ -96,6 +97,7 @@ namespace lab2 {
                     // if the neighbour knows its distance to the given node, and its distance is lower than that of all
                     // the other neighbours, it becomes the preferred neighbour
                     if (neighbourDistance.Value.TryGetValue(farPort, out int stepCount) && stepCount < lowestDistance) {
+                        lowestDistance = stepCount;
                         // preferred neighbour's distance to port + 1
                         newRoute[0] = stepCount + 1;
                         // preferred neighbour's port
@@ -103,7 +105,6 @@ namespace lab2 {
                     }
                 }
             }
-
             // update route with new route
             bool res = this.routes.TryGetValue(farPort, out int[] route) && route == newRoute;
             this.routes[farPort] = newRoute;
