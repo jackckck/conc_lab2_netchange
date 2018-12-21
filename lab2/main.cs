@@ -78,7 +78,7 @@ namespace lab2 {
                 // send message
                 case "B":
                     // todo fix message splitting
-                    SendMessage(int.Parse(command[1]), command[2]);
+                    SendMessageToPort(int.Parse(command[1]), command[2]);
                     break;
                 // make connection
                 case "C":
@@ -96,44 +96,31 @@ namespace lab2 {
         // process an incoming message
         private void ProcessMessage(string message) {
             string[] command = message.Split(' ');
-            int farPort = int.Parse(command[0]);
 
-            // forward the message if it's meant for someone else
-            if (farPort != this.port) {
-                SendMessage(farPort, message);
-                return;
-            }
-
-            switch (command[1]) {
+            switch (command[0]) {
                 // message from neighbour
                 case "B":
-                    // todo fix string splitting
-                    Console.WriteLine(command[2]);
+                    // forward the message if it's meant for someone else
+                    int farPort = int.Parse(command[1]);
+                    if (farPort != this.port) SendMessageToPort(farPort, message);
+                    // todo fix message splitting
+                    else Console.WriteLine(command[2]);
                     break;
                 // connection from neighbour closed
                 case "D":
-                    // todo create
-                    this.routing.RemoveNeighbour(SplitMessage(message)[0]);
+                    int neighbourPort = int.Parse(command[1]);
+                    if (this.routing.RemoveNeighbour(neighbourPort)) {
+                        // todo format
+                        SendMessageToNeighbours(string.Format("U {0} {1} {2}", this.port, neighbourPort, ));
+                    }
                     break;
                 // distance update from neighbour
                 case "U":
-                    // todo create
-                    int[] route = SplitMessage(message);
-                    this.routing.UpdateNeighbourDistance(route[0], route[1], route[3]);
+                    if (this.routing.UpdateNeighbourDistance(int.Parse(command[1]), int.Parse(command[2]), int.Parse(command[3]))) {
+                        // todo naar iedereen doorsturen?
+                        SendMessageToNeighbours(message);
+                    }
                     break;
-            }
-
-            // todo
-            int[] SplitMessage(string m) {
-                // ex "c00001-65535-2"
-                string port0 = ""; string port1 = "";
-                string distance = "";
-
-                for (int i = 1; i < 6; i++) port0 += m[i];
-                for (int j = 7; j < 12; j++) port1 += m[j];
-                for (int k = 13; k < m.Length; k++) distance += m[k];
-
-                return new int[3] { Int32.Parse(port0), Int32.Parse(port1), Int32.Parse(distance) };
             }
         }
         #endregion
@@ -144,20 +131,26 @@ namespace lab2 {
         }
 
         // send a message to a port
-        private void SendMessage(int farPort, string message) {
+        private void SendMessageToPort(int farPort, string message) {
             this.routing.GetConnection(farPort).Send(message);
+        }
+
+        // send a message to all neighbours
+        private void SendMessageToNeighbours(string message) {
+            foreach (Connection connection in this.routing.GetNeighbourConnections()) connection.Send(message);
         }
 
         // add a connection
         private void AddConnection(int neighbourPort) {
             this.routing.AddNeighbour(neighbourPort, new Connection(this.port, neighbourPort, ProcessMessage));
-            // todo notify neighbours
+            SendMessageToNeighbours(string.Format("U {0} {1} {2}", this.port, neighbourPort, 1));
         }
 
         // remove a connection
         private void RemoveConnection(int neighbourPort) {
             this.routing.RemoveNeighbour(neighbourPort);
-            // todo notify neighbours
+            // todo format
+            SendMessageToNeighbours(string.Format("U {0} {1} {2}", this.port, neighbourPort, "???"));
         }
     }
 }
