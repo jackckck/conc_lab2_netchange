@@ -111,9 +111,7 @@ namespace lab2 {
                     break;
                 // distance update from neighbour
                 case "U":
-                    this.routing.UpdateNeighbourDistance(int.Parse(command[1]), int.Parse(command[2]), int.Parse(command[3]))
-                    // todo ???
-                    SendMessageToNeighbours(message);
+                    UpdateConnection(int.Parse(command[1]), int.Parse(command[2]), int.Parse(command[3]));
                     break;
             }
         }
@@ -128,7 +126,6 @@ namespace lab2 {
         private void SendMessageToPort(int farPort, string message) {
             this.routing.GetConnection(farPort).Send(message);
         }
-
         // send a message to all neighbours
         private void SendMessageToNeighbours(string message) {
             foreach (Connection connection in this.routing.GetNeighbourConnections()) connection.Send(message);
@@ -136,23 +133,22 @@ namespace lab2 {
 
         // add a connection
         private void AddConnection(int neighbourPort) {
-            this.routing.AddNeighbour(neighbourPort, new Connection(this.port, neighbourPort, this));
-            InformNeighbours(neighbourPort);
+            AddConnection(neighbourPort, new Connection(this.port, neighbourPort, this));
         }
         private void AddConnection(int neighbourPort, Connection connection) {
-            this.routing.AddNeighbour(neighbourPort, connection);
-            InformNeighbours(neighbourPort);
-        }
-        private void InformNeighbours(int neighbourPort) {
+            // notify neighbours of updated routes
+            foreach (int[] route in this.routing.AddNeighbour(neighbourPort, connection)) SendMessageToNeighbours(string.Format("U {0} {1} {2}", this.port, route[1], route[0]));
+            // supply new connection with all known routes
+            // todo only send routes not yet send
             lock (this.routing.routesLock) foreach (KeyValuePair<int, int[]> route in this.routing.getRoutes()) SendMessageToPort(neighbourPort, string.Format("U {0} {1} {2}", this.port, route.Key, route.Value[0]));
-            SendMessageToNeighbours(string.Format("U {0} {1} {2}", this.port, neighbourPort, 1));
         }
-
+        // update a connection
+        private void UpdateConnection(int farPort1, int farPort2, int distance) {
+            if (this.routing.UpdateNeighbourDistance(farPort1, farPort2, distance)) SendMessageToNeighbours(string.Format("U {0} {1} {2}", this.port, farPort2, distance));
+        }
         // remove a connection
         private void RemoveConnection(int neighbourPort) {
-            this.routing.RemoveNeighbour(neighbourPort);
-            // todo get distance
-            SendMessageToNeighbours(string.Format("U {0} {1} {2}", this.port, neighbourPort, "???"));
+            foreach (int[] route in this.routing.RemoveNeighbour(neighbourPort)) SendMessageToNeighbours(string.Format("U {0} {1} {2}", this.port, route[1], route[0]));
         }
     }
 }

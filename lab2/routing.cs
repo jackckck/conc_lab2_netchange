@@ -115,17 +115,18 @@ namespace lab2 {
         // recomputes routes and a returns list of routes that have been updated
         private List<int[]> RecomputeAll() {
             List<int[]> updatedRoutes = new List<int[]>();
-            foreach (KeyValuePair<int,  int[]> portRoute in this.routes) {
-                // deze code is een beetje lelijk, maar wel geheel 
-
+            lock (this.routesLock) foreach (KeyValuePair<int,  int[]> portRoute in this.routes) {
+                // deze code is een beetje lelijk, maar wel geheel
                 // als recompute leidt tot een verandering
                 if (Recompute(portRoute.Key)) {
                     // voeg updated route toe aan returnlijst
                     if (routes.TryGetValue(portRoute.Key, out int[] newRoute)) {
+                        newRoute[1] = portRoute.Key;
                         updatedRoutes.Add(newRoute);
                     }
                 }
             }
+
             return updatedRoutes;
         }
     }
