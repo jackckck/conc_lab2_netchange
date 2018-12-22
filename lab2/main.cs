@@ -125,12 +125,14 @@ namespace lab2 {
         // send a message to a port
         private void SendMessageToPort(int farPort, string message) {
             Connection connection = this.routing.GetConnection(farPort);
-            if (connection != null) connection.Send(message);
-            else Console.WriteLine(string.Format("// {0} kan poort {1} niet bereiken", this.port, farPort));
+            if (connection != null) {
+                Console.WriteLine(string.Format("// {0} heeft poort {1} een bericht gestuurd", this.port, farPort));
+                connection.Send(message);
+            } else Console.WriteLine(string.Format("// {0} kan poort {1} niet bereiken", this.port, farPort));
         }
         // send a message to all neighbours
         private void SendMessageToNeighbours(string message) {
-            foreach (Connection connection in this.routing.GetNeighbourConnections()) connection.Send(message);
+            lock (this.routing.neighbourConnectionsLock) foreach (Connection connection in this.routing.GetNeighbourConnections()) connection.Send(message);
         }
 
         // add a connection
@@ -138,11 +140,12 @@ namespace lab2 {
             AddConnection(neighbourPort, new Connection(this.port, neighbourPort, this));
         }
         private void AddConnection(int neighbourPort, Connection connection) {
-            // notify neighbours of updated routes
             this.routing.AddNeighbour(neighbourPort, connection);
-            SendMessageToNeighbours(string.Format("U {0} {1} {2}", this.port, neighbourPort, 1));
+            lock (this.routing.routesLock) Console.WriteLine("// True? " + this.routing.GetRoutes().ContainsKey(neighbourPort));
             // supply new connection with all known routes
             lock (this.routing.routesLock) foreach (KeyValuePair<int, int[]> route in this.routing.GetRoutes()) SendMessageToPort(neighbourPort, string.Format("U {0} {1} {2}", this.port, route.Key, route.Value[0]));
+            // notify neighbours of updated routes
+            SendMessageToNeighbours(string.Format("U {0} {1} {2}", this.port, neighbourPort, 1));
         }
         // update a connection
         private void UpdateConnection(int farPort1, int farPort2, int distance) {

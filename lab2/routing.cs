@@ -6,6 +6,8 @@ namespace lab2 {
     public class RoutingTable {
         private readonly int homePort;
         private readonly int nodeCount;
+        public readonly object neighbourConnectionsLock;
+        public readonly object neighbourDistancesLock;
         public readonly object routesLock;
 
         // key ^= neighbour's port int, value ^= Connection to neighbour
@@ -18,22 +20,22 @@ namespace lab2 {
         public RoutingTable(int homePort) {
             this.homePort = homePort;
             this.routes[homePort] = new int[2] { 0, homePort };
+            this.neighbourConnectionsLock = new object();
+            this.neighbourDistancesLock = new object();
             this.routesLock = new object();
             //this.nodeCount = 1 + neighbours.Length;
         }
 
         public override string ToString() {
-            lock (this.routesLock) {
-                string res = "";
-                foreach (KeyValuePair<int, int[]> route in this.routes) {
+            string res = "";
+            lock (this.routesLock) foreach (KeyValuePair<int, int[]> route in this.routes) {
                     res += route.Key + " " + route.Value[0] + " ";
                     if (route.Key == this.homePort) res += "local";
                     else res += route.Value[1];
                     res += "\n";
                 }
 
-                return res;
-            }
+            return res;
         }
 
         public Dictionary<int, int[]> GetRoutes() {
@@ -42,7 +44,7 @@ namespace lab2 {
 
         // returns null if no route
         public Connection GetConnection(int farPort) {
-            lock (this.routesLock) {
+            lock (this.routesLock) lock (this.neighbourConnectionsLock) {
                 if (this.routes.TryGetValue(farPort, out int[] route) &&
                     this.neighbourConnections.TryGetValue(route[1], out Connection res))
                     return res;
@@ -53,39 +55,45 @@ namespace lab2 {
 
         // get all the neighbour connections
         public Connection[] GetNeighbourConnections() {
-            return neighbourConnections.Values.ToArray();
+            lock (this.neighbourConnectionsLock) return neighbourConnections.Values.ToArray();
         }
 
         // add a neighbour
-        public List<int[]> AddNeighbour(int neighbourPort, Connection c) {
-            this.neighbourConnections[neighbourPort] = c;
-            this.neighbourDistances[neighbourPort] = new Dictionary<int, int>();
+        public List<int[]> AddNeighbour(int neighbourPort, Connection connection) {
+            lock (this.neighbourConnectionsLock) lock (this.neighbourDistancesLock) {
+                this.neighbourConnections[neighbourPort] = connection;
+                this.neighbourDistances[neighbourPort] = new Dictionary<int, int>();
 
-            return RecomputeAll();
+                return RecomputeAll();
+            }
         }
 
         // remove a connection
         public List<int[]> RemoveNeighbour(int neighbourPort) {
-            this.neighbourConnections.Remove(neighbourPort);
-            this.neighbourDistances.Remove(neighbourPort);
+            lock (this.neighbourConnectionsLock) lock (this.neighbourDistancesLock) {
+                this.neighbourConnections.Remove(neighbourPort);
+                this.neighbourDistances.Remove(neighbourPort);
 
-            return RecomputeAll();
+                return RecomputeAll();
+            }
         }
 
         // updates the routing table's knowledge of the distance between neighbourPort and destinationPort
         public bool UpdateNeighbourDistance(int neighbourPort, int farPort, int newDistance) {
-            if (this.neighbourDistances.TryGetValue(neighbourPort, out Dictionary<int, int> distances)) {
-                distances[farPort] = newDistance;
-                this.neighbourDistances[neighbourPort] = distances;
+            lock (this.neighbourDistancesLock) {
+                if (this.neighbourDistances.TryGetValue(neighbourPort, out Dictionary<int, int> distances)) {
+                    distances[farPort] = newDistance;
+                    this.neighbourDistances[neighbourPort] = distances;
+                }
+                return Recompute(farPort);
             }
-            return Recompute(farPort);
         }
 
         private bool Recompute(int farPort) {
-            lock (this.routesLock) {
-                // Console.WriteLine("// Recompute op route " + farPort);
+            // Console.WriteLine("// Recompute op route " + farPort);
+            int[] newRoute = new int[2];
 
-                int[] newRoute = new int[2];
+            lock (this.routesLock) {
                 if (this.homePort == farPort) {
                     this.routes[farPort] = new int[2] { 0, homePort };
                     return false;
@@ -94,7 +102,7 @@ namespace lab2 {
                 // compute new route
                 // int lowestDistance = this.nodeCount;
                 int lowestDistance = 20;
-                foreach (KeyValuePair<int, Dictionary<int, int>> neighbourDistance in this.neighbourDistances) {
+                lock (this.neighbourDistancesLock) foreach (KeyValuePair<int, Dictionary<int, int>> neighbourDistance in this.neighbourDistances) {
                     // if the neighbour knows its distance to the given node, and its distance is lower than that of all
                     // the other neighbours, it becomes the preferred neighbour
                     if (neighbourDistance.Value.TryGetValue(farPort, out int stepCount) && stepCount < lowestDistance) {
@@ -115,8 +123,9 @@ namespace lab2 {
 
         // recomputes routes and a returns list of routes that have been updated
         private List<int[]> RecomputeAll() {
+            List<int[]> updatedRoutes = new List<int[]>();
+
             lock (this.routesLock) {
-                List<int[]> updatedRoutes = new List<int[]>();
                 int[] portRoutes = this.routes.Keys.ToArray();
                 foreach (int route in portRoutes) {
                     // deze code is een beetje lelijk, maar wel geheel
