@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 
 namespace lab2 {
@@ -111,13 +112,14 @@ namespace lab2 {
         private List<int[]> RecomputeAll() {
             lock (this.routesLock) {
                 List<int[]> updatedRoutes = new List<int[]>();
-                foreach (KeyValuePair<int, int[]> portRoute in this.routes) {
+                int[] portRoutes = this.routes.Keys.ToArray();
+                foreach (int route in portRoutes) {
                     // deze code is een beetje lelijk, maar wel geheel
                     // als recompute leidt tot een verandering
-                    if (Recompute(portRoute.Key)) {
+                    if (Recompute(route)) {
                         // voeg updated route toe aan returnlijst
-                        if (routes.TryGetValue(portRoute.Key, out int[] newRoute)) {
-                            newRoute[1] = portRoute.Key;
+                        if (routes.TryGetValue(route, out int[] newRoute)) {
+                            newRoute[1] = route;
                             updatedRoutes.Add(newRoute);
                         }
                     }

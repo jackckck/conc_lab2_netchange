@@ -124,7 +124,9 @@ namespace lab2 {
 
         // send a message to a port
         private void SendMessageToPort(int farPort, string message) {
-            this.routing.GetConnection(farPort).Send(message);
+            Connection connection = this.routing.GetConnection(farPort);
+            if (connection != null) connection.Send(message);
+            else Console.WriteLine(string.Format("// {0} kan poort {1} niet bereiken", this.port, farPort));
         }
         // send a message to all neighbours
         private void SendMessageToNeighbours(string message) {
