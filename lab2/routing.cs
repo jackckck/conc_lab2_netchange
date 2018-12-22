@@ -22,34 +22,37 @@ namespace lab2 {
         }
 
         public override string ToString() {
-            string res = "";
-            foreach (KeyValuePair<int, int[]> route in this.routes) {
-                res += route.Key + " " + route.Value[0] + " ";
-                if (route.Key == this.homePort) res += "local";
-                else res += route.Value[1];
-                res += "\n";
-            }
+            lock (this.routesLock) {
+                string res = "";
+                foreach (KeyValuePair<int, int[]> route in this.routes) {
+                    res += route.Key + " " + route.Value[0] + " ";
+                    if (route.Key == this.homePort) res += "local";
+                    else res += route.Value[1];
+                    res += "\n";
+                }
 
-            return res;
+                return res;
+            }
         }
 
         public Dictionary<int, int[]> getRoutes() {
-            return this.routes;
+            lock (this.routesLock) return this.routes;
         }
 
         // returns null if no route
         public Connection GetConnection(int farPort) {
-            if (this.routes.TryGetValue(farPort, out int[] route) &&
-                this.neighbourConnections.TryGetValue(route[1], out Connection res))
+            lock (this.routesLock) {
+                if (this.routes.TryGetValue(farPort, out int[] route) &&
+                    this.neighbourConnections.TryGetValue(route[1], out Connection res))
                     return res;
-            return null;
+                return null;
+            }
         }
 
         // get all the neighbour connections
         public Connection[] GetNeighbourConnections() {
             return neighbourConnections.Values.ToArray();
         }
-
 
         // add a neighbour
         public List<int[]> AddNeighbour(int neighbourPort, Connection c) {
@@ -72,62 +75,56 @@ namespace lab2 {
             if (this.neighbourDistances.TryGetValue(neighbourPort, out Dictionary<int, int> distances)) distances[farPort] = newDistance;
             return Recompute(farPort);
         }
-        
-        // todo remove?
-        private void PurgeNode(int port) {
-            this.neighbourConnections.Remove(port);
-            this.neighbourDistances.Remove(port);
-            lock (this.routesLock) this.routes.Remove(port);
-
-            //this.nodeCount--;
-        }
 
         private bool Recompute(int farPort) {
-            int[] newRoute = new int[2];
+            lock (this.routesLock) {
+                int[] newRoute = new int[2];
 
-            if (this.homePort == farPort) {
-                lock (this.routesLock) this.routes[farPort] = new int[2] { 0, homePort };
-                return false;
-            }
-
-            // compute new route
-
-            // int lowestDistance = this.nodeCount;
-            int lowestDistance = 20;
-            foreach (KeyValuePair<int, Dictionary<int, int>> neighbourDistance in this.neighbourDistances) {
-                // if the neighbour knows its distance to the given node, and its distance is lower than that of all
-                // the other neighbours, it becomes the preferred neighbour
-                if (neighbourDistance.Value.TryGetValue(farPort, out int stepCount) && stepCount < lowestDistance) {
-                    lowestDistance = stepCount;
-                    // preferred neighbour's distance to port + 1
-                    newRoute[0] = stepCount + 1;
-                    // preferred neighbour's port
-                    newRoute[1] = neighbourDistance.Key;
+                if (this.homePort == farPort) {
+                    this.routes[farPort] = new int[2] { 0, homePort };
+                    return false;
                 }
-            }
 
-            // true if no update is necessary
-            bool res = this.routes.TryGetValue(farPort, out int[] route) && route == newRoute;
-            lock (this.routesLock) this.routes[farPort] = newRoute;
-            return res;
+                // compute new route
+                // int lowestDistance = this.nodeCount;
+                int lowestDistance = 20;
+                foreach (KeyValuePair<int, Dictionary<int, int>> neighbourDistance in this.neighbourDistances) {
+                    // if the neighbour knows its distance to the given node, and its distance is lower than that of all
+                    // the other neighbours, it becomes the preferred neighbour
+                    if (neighbourDistance.Value.TryGetValue(farPort, out int stepCount) && stepCount < lowestDistance) {
+                        lowestDistance = stepCount;
+                        // preferred neighbour's distance to port + 1
+                        newRoute[0] = stepCount + 1;
+                        // preferred neighbour's port
+                        newRoute[1] = neighbourDistance.Key;
+                    }
+                }
+
+                // true if no update is necessary
+                bool res = this.routes.TryGetValue(farPort, out int[] route) && route == newRoute;
+                this.routes[farPort] = newRoute;
+                return res;
+            }
         }
 
         // recomputes routes and a returns list of routes that have been updated
         private List<int[]> RecomputeAll() {
-            List<int[]> updatedRoutes = new List<int[]>();
-            lock (this.routesLock) foreach (KeyValuePair<int,  int[]> portRoute in this.routes) {
-                // deze code is een beetje lelijk, maar wel geheel
-                // als recompute leidt tot een verandering
-                if (Recompute(portRoute.Key)) {
-                    // voeg updated route toe aan returnlijst
-                    if (routes.TryGetValue(portRoute.Key, out int[] newRoute)) {
-                        newRoute[1] = portRoute.Key;
-                        updatedRoutes.Add(newRoute);
+            lock (this.routesLock) {
+                List<int[]> updatedRoutes = new List<int[]>();
+                foreach (KeyValuePair<int, int[]> portRoute in this.routes) {
+                    // deze code is een beetje lelijk, maar wel geheel
+                    // als recompute leidt tot een verandering
+                    if (Recompute(portRoute.Key)) {
+                        // voeg updated route toe aan returnlijst
+                        if (routes.TryGetValue(portRoute.Key, out int[] newRoute)) {
+                            newRoute[1] = portRoute.Key;
+                            updatedRoutes.Add(newRoute);
+                        }
                     }
                 }
-            }
 
-            return updatedRoutes;
+                return updatedRoutes;
+            }
         }
     }
 }
