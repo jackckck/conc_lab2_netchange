@@ -111,8 +111,9 @@ namespace lab2 {
                 }
             }
 
-            // update route with new route
+            // true if no update is necessary
             bool res = this.routes.TryGetValue(farPort, out int[] route) && route == newRoute;
+            // update route with new route
             this.routes[farPort] = newRoute;
             return res;
         }
