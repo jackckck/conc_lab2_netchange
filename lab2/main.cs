@@ -139,13 +139,14 @@ namespace lab2 {
         }
         private void AddConnection(int neighbourPort, Connection connection) {
             // notify neighbours of updated routes
-            foreach (int[] route in this.routing.AddNeighbour(neighbourPort, connection)) SendMessageToNeighbours(string.Format("U {0} {1} {2}", this.port, route[1], route[0]));
+            this.routing.AddNeighbour(neighbourPort, connection);
+            SendMessageToNeighbours(string.Format("U {0} {1} {2}", this.port, neighbourPort, 1));
             // supply new connection with all known routes
-            // todo only send routes not yet send
-            lock (this.routing.routesLock) foreach (KeyValuePair<int, int[]> route in this.routing.getRoutes()) SendMessageToPort(neighbourPort, string.Format("U {0} {1} {2}", this.port, route.Key, route.Value[0]));
+            lock (this.routing.routesLock) foreach (KeyValuePair<int, int[]> route in this.routing.GetRoutes()) SendMessageToPort(neighbourPort, string.Format("U {0} {1} {2}", this.port, route.Key, route.Value[0]));
         }
         // update a connection
         private void UpdateConnection(int farPort1, int farPort2, int distance) {
+            // Console.WriteLine(string.Format("// Connection update: {0} {1} {2}", farPort1, farPort2, distance));
             if (this.routing.UpdateNeighbourDistance(farPort1, farPort2, distance)) SendMessageToNeighbours(string.Format("U {0} {1} {2}", this.port, farPort2, distance));
         }
         // remove a connection

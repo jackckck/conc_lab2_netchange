@@ -36,7 +36,7 @@ namespace lab2 {
             }
         }
 
-        public Dictionary<int, int[]> getRoutes() {
+        public Dictionary<int, int[]> GetRoutes() {
             lock (this.routesLock) return this.routes;
         }
 
@@ -46,7 +46,7 @@ namespace lab2 {
                 if (this.routes.TryGetValue(farPort, out int[] route) &&
                     this.neighbourConnections.TryGetValue(route[1], out Connection res))
                     return res;
-                
+
                 return null;
             }
         }
@@ -74,13 +74,16 @@ namespace lab2 {
 
         // updates the routing table's knowledge of the distance between neighbourPort and destinationPort
         public bool UpdateNeighbourDistance(int neighbourPort, int farPort, int newDistance) {
-            if (this.neighbourDistances.TryGetValue(neighbourPort, out Dictionary<int, int> distances)) distances[farPort] = newDistance;
+            if (this.neighbourDistances.TryGetValue(neighbourPort, out Dictionary<int, int> distances)) {
+                distances[farPort] = newDistance;
+                this.neighbourDistances[neighbourPort] = distances;
+            }
             return Recompute(farPort);
         }
 
         private bool Recompute(int farPort) {
             lock (this.routesLock) {
-                Console.WriteLine("// Recompute op route " + farPort);
+                // Console.WriteLine("// Recompute op route " + farPort);
 
                 int[] newRoute = new int[2];
                 if (this.homePort == farPort) {
