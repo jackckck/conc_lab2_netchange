@@ -44,6 +44,15 @@ namespace lab2 {
 
         // returns null if no route
         public Connection GetConnection(int farPort) {
+            Console.WriteLine("// | R LOOKING FOR " + farPort);
+            foreach (KeyValuePair<int, int[]> kvp in this.routes) {
+                Console.WriteLine(string.Format("// | {0} {1} {2}", kvp.Key, kvp.Value[0], kvp.Value[1]));
+            }
+            Console.WriteLine("// | NC LOOKING FOR " + farPort);
+            foreach (KeyValuePair<int, Connection> kvp in this.neighbourConnections) {
+                Console.WriteLine(string.Format("// | {0} {1}", kvp.Key, kvp.Value));
+            }
+
             lock (this.routesLock) lock (this.neighbourConnectionsLock) {
                 if (this.routes.TryGetValue(farPort, out int[] route) &&
                     this.neighbourConnections.TryGetValue(route[1], out Connection res))
@@ -63,7 +72,8 @@ namespace lab2 {
             lock (this.neighbourConnectionsLock) lock (this.neighbourDistancesLock) {
                 this.neighbourConnections[neighbourPort] = connection;
                 this.neighbourDistances[neighbourPort] = new Dictionary<int, int>();
-
+                this.routes[neighbourPort] = new int[2] { 1, neighbourPort };
+                
                 return RecomputeAll();
             }
         }

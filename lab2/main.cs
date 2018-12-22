@@ -19,13 +19,13 @@ namespace lab2 {
 
         // constructor
         public Node(string[] ports) {
+            this.port = int.Parse(ports[0]);
             Console.Title = "NetChange " + ports[0];
 
             // instanciate routing table
-            this.routing = new RoutingTable(port);
+            this.routing = new RoutingTable(this.port);
 
-            // get own port and start listening
-            this.port = int.Parse(ports[0]);
+            // get own server and start listening
             TcpListener server = new TcpListener(IPAddress.Any, this.port);
             server.Start();
             new Thread(() => ListenConnection(server)).Start();
@@ -141,7 +141,7 @@ namespace lab2 {
         }
         private void AddConnection(int neighbourPort, Connection connection) {
             this.routing.AddNeighbour(neighbourPort, connection);
-            lock (this.routing.routesLock) Console.WriteLine("// True? " + this.routing.GetRoutes().ContainsKey(neighbourPort));
+            lock (this.routing.routesLock) Console.WriteLine(string.Format("// Added? {0} {1}", this.routing.GetRoutes().ContainsKey(neighbourPort), this.routing.GetConnection(neighbourPort) != null));
             // supply new connection with all known routes
             lock (this.routing.routesLock) foreach (KeyValuePair<int, int[]> route in this.routing.GetRoutes()) SendMessageToPort(neighbourPort, string.Format("U {0} {1} {2}", this.port, route.Key, route.Value[0]));
             // notify neighbours of updated routes
