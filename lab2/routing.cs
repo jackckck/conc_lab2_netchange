@@ -104,6 +104,7 @@ namespace lab2 {
                     distances[farPort] = newDistance;
                     this.neighbourDistances[neighbourPort] = distances;
                 }
+
                 return Recompute(farPort);
             }
         }
@@ -143,9 +144,9 @@ namespace lab2 {
                     }
                 }
 
-                // true if no update is necessary
-                bool res = this.routes.TryGetValue(farPort, out int[] route) && route == newRoute;
-                this.routes[farPort] = newRoute;
+                // false if no update is necessary
+                bool res = this.routes.TryGetValue(farPort, out int[] route) && route[0] > newRoute[0];
+                if (res) this.routes[farPort] = newRoute;
 
                 /*
                 Console.WriteLine("// | R AFTER");

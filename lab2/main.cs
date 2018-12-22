@@ -148,7 +148,7 @@ namespace lab2 {
         }
         // update a connection
         private void UpdateConnection(int farPort1, int farPort2, int distance) {
-            // Console.WriteLine(string.Format("// Connection update: {0} {1} {2}", farPort1, farPort2, distance));
+            Console.WriteLine(string.Format("// Connection update: {0} {1} {2}", farPort1, farPort2, distance));
             if (this.routing.UpdateNeighbourDistance(farPort1, farPort2, distance)) lock (this.routing.routesLock) SendMessageToNeighbours(string.Format("U {0} {1} {2}", this.port, farPort2, this.routing.GetRoutes()[farPort2][0]));
         }
         // remove a connection
