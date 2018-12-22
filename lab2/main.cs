@@ -19,10 +19,10 @@ namespace lab2 {
 
         // constructor
         public Node(string[] ports) {
-            this.port = int.Parse(ports[0]);
             Console.Title = "NetChange " + ports[0];
 
             // instanciate routing table
+            this.port = int.Parse(ports[0]);
             this.routing = new RoutingTable(this.port);
 
             // get own server and start listening
@@ -126,9 +126,9 @@ namespace lab2 {
         private void SendMessageToPort(int farPort, string message) {
             Connection connection = this.routing.GetConnection(farPort);
             if (connection != null) {
-                Console.WriteLine(string.Format("// {0} heeft poort {1} een bericht gestuurd", this.port, farPort));
+                Console.WriteLine(string.Format("// {0} heeft poort {1} een bericht gestuurd: {2}", this.port, farPort, message));
                 connection.Send(message);
-            } else Console.WriteLine(string.Format("// {0} kan poort {1} niet bereiken", this.port, farPort));
+            } else Console.WriteLine(string.Format("// {0} kan poort {1} niet bereiken ({2})", this.port, farPort, message));
         }
         // send a message to all neighbours
         private void SendMessageToNeighbours(string message) {
@@ -136,12 +136,12 @@ namespace lab2 {
         }
 
         // add a connection
-        private void AddConnection(int neighbourPort) {
+        public void AddConnection(int neighbourPort) {
             AddConnection(neighbourPort, new Connection(this.port, neighbourPort, this));
         }
-        private void AddConnection(int neighbourPort, Connection connection) {
+        public void AddConnection(int neighbourPort, Connection connection) {
             this.routing.AddNeighbour(neighbourPort, connection);
-            lock (this.routing.routesLock) Console.WriteLine(string.Format("// Added? {0} {1}", this.routing.GetRoutes().ContainsKey(neighbourPort), this.routing.GetConnection(neighbourPort) != null));
+            //lock (this.routing.routesLock) Console.WriteLine(string.Format("// Added? {0} {1}", this.routing.GetRoutes().ContainsKey(neighbourPort), this.routing.GetConnection(neighbourPort) != null));
             // supply new connection with all known routes
             lock (this.routing.routesLock) foreach (KeyValuePair<int, int[]> route in this.routing.GetRoutes()) SendMessageToPort(neighbourPort, string.Format("U {0} {1} {2}", this.port, route.Key, route.Value[0]));
             // notify neighbours of updated routes

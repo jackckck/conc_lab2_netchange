@@ -44,6 +44,7 @@ namespace lab2 {
 
         // returns null if no route
         public Connection GetConnection(int farPort) {
+            /*
             Console.WriteLine("// | R LOOKING FOR " + farPort);
             foreach (KeyValuePair<int, int[]> kvp in this.routes) {
                 Console.WriteLine(string.Format("// | {0} {1} {2}", kvp.Key, kvp.Value[0], kvp.Value[1]));
@@ -52,6 +53,7 @@ namespace lab2 {
             foreach (KeyValuePair<int, Connection> kvp in this.neighbourConnections) {
                 Console.WriteLine(string.Format("// | {0} {1}", kvp.Key, kvp.Value));
             }
+            */
 
             lock (this.routesLock) lock (this.neighbourConnectionsLock) {
                 if (this.routes.TryGetValue(farPort, out int[] route) &&
@@ -73,6 +75,12 @@ namespace lab2 {
                 this.neighbourConnections[neighbourPort] = connection;
                 this.neighbourDistances[neighbourPort] = new Dictionary<int, int>();
                 this.routes[neighbourPort] = new int[2] { 1, neighbourPort };
+
+                
+                Console.WriteLine("// | R BEFORE");
+                foreach (KeyValuePair<int, int[]> kvp in this.routes) {
+                    Console.WriteLine(string.Format("// | {0} {1} {2}", kvp.Key, kvp.Value[0], kvp.Value[1]));
+                }
                 
                 return RecomputeAll();
             }
@@ -100,7 +108,7 @@ namespace lab2 {
         }
 
         private bool Recompute(int farPort) {
-            // Console.WriteLine("// Recompute op route " + farPort);
+            Console.WriteLine("// Recompute op route " + farPort);
             int[] newRoute = new int[2];
 
             lock (this.routesLock) {
@@ -113,6 +121,7 @@ namespace lab2 {
                 // int lowestDistance = this.nodeCount;
                 int lowestDistance = 20;
                 lock (this.neighbourDistancesLock) foreach (KeyValuePair<int, Dictionary<int, int>> neighbourDistance in this.neighbourDistances) {
+                    // Console.WriteLine(neighbourDistance.Key);
                     // if the neighbour knows its distance to the given node, and its distance is lower than that of all
                     // the other neighbours, it becomes the preferred neighbour
                     if (neighbourDistance.Value.TryGetValue(farPort, out int stepCount) && stepCount < lowestDistance) {
@@ -127,6 +136,12 @@ namespace lab2 {
                 // true if no update is necessary
                 bool res = this.routes.TryGetValue(farPort, out int[] route) && route == newRoute;
                 this.routes[farPort] = newRoute;
+
+                Console.WriteLine("// | R AFTER");
+                foreach (KeyValuePair<int, int[]> kvp in this.routes) {
+                    Console.WriteLine(string.Format("// | {0} {1} {2}", kvp.Key, kvp.Value[0], kvp.Value[1]));
+                }
+
                 return res;
             }
         }
@@ -154,3 +169,4 @@ namespace lab2 {
         }
     }
 }
+ 
