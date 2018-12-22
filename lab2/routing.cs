@@ -5,6 +5,7 @@ namespace lab2 {
     public class RoutingTable {
         private int homePort;
         private int nodeCount;
+        public readonly object routesLock;
 
         // key ^= neighbour's port int, value ^= Connection to neighbour
         private Dictionary<int, Connection> neighbourConnections = new Dictionary<int, Connection>();
@@ -16,6 +17,7 @@ namespace lab2 {
         public RoutingTable(int homePort) {
             this.homePort = homePort;
             this.routes[homePort] = new int[2] { 0, homePort };
+            this.routesLock = new object();
             //this.nodeCount = 1 + neighbours.Length;
         }
 
@@ -76,13 +78,13 @@ namespace lab2 {
 
         // use with care, or just use recompute instead
         private void UpdateRoute(int port, int newDistance, int newPreferred) {
-            this.routes[port] = new int[2] { newDistance, newPreferred };
+            lock (this.routesLock) this.routes[port] = new int[2] { newDistance, newPreferred };
         }
         
         private void PurgeNode(int port) {
             this.neighbourConnections.Remove(port);
             this.neighbourDistances.Remove(port);
-            this.routes.Remove(port);
+            lock (this.routesLock) this.routes.Remove(port);
 
             //this.nodeCount--;
         }
@@ -91,7 +93,7 @@ namespace lab2 {
             int[] newRoute = new int[2];
 
             if (this.homePort == farPort) {
-                this.routes[farPort] = new int[2] { 0, homePort };
+                lock (this.routesLock) this.routes[farPort] = new int[2] { 0, homePort };
                 return false;
             }
 
@@ -113,8 +115,7 @@ namespace lab2 {
 
             // true if no update is necessary
             bool res = this.routes.TryGetValue(farPort, out int[] route) && route == newRoute;
-            // update route with new route
-            this.routes[farPort] = newRoute;
+            lock (this.routesLock) this.routes[farPort] = newRoute;
             return res;
         }
     }

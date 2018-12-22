@@ -146,7 +146,7 @@ namespace lab2 {
             InformNeighbours(neighbourPort);
         }
         private void InformNeighbours(int neighbourPort) {
-            foreach (KeyValuePair<int, int[]> route in this.routing.getRoutes()) SendMessageToPort(neighbourPort, string.Format("U {0} {1} {2}", this.port, route.Key, route.Value[0]));
+            lock(this.routing.routesLock) foreach (KeyValuePair<int, int[]> route in this.routing.getRoutes()) SendMessageToPort(neighbourPort, string.Format("U {0} {1} {2}", this.port, route.Key, route.Value[0]));
             SendMessageToNeighbours(string.Format("U {0} {1} {2}", this.port, neighbourPort, 1));
         }
 
