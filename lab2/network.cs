@@ -19,6 +19,7 @@ namespace lab2 {
 
             // tell neighbour our port
             Send(port.ToString());
+            // this.node.AddConnection(neighbourPort);
 
             new Thread(Listen).Start();
         }

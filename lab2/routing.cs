@@ -73,14 +73,15 @@ namespace lab2 {
         public List<int[]> AddNeighbour(int neighbourPort, Connection connection) {
             lock (this.neighbourConnectionsLock) lock (this.neighbourDistancesLock) {
                 this.neighbourConnections[neighbourPort] = connection;
-                this.neighbourDistances[neighbourPort] = new Dictionary<int, int>();
+                this.neighbourDistances[neighbourPort] = new Dictionary<int, int>() { { neighbourPort, 0 } };
                 this.routes[neighbourPort] = new int[2] { 1, neighbourPort };
 
-                
+                /*
                 Console.WriteLine("// | R BEFORE");
                 foreach (KeyValuePair<int, int[]> kvp in this.routes) {
                     Console.WriteLine(string.Format("// | {0} {1} {2}", kvp.Key, kvp.Value[0], kvp.Value[1]));
                 }
+                */
                 
                 return RecomputeAll();
             }
@@ -108,7 +109,7 @@ namespace lab2 {
         }
 
         private bool Recompute(int farPort) {
-            Console.WriteLine("// Recompute op route " + farPort);
+            // Console.WriteLine("// Recompute op route " + farPort);
             int[] newRoute = new int[2];
 
             lock (this.routesLock) {
@@ -116,6 +117,15 @@ namespace lab2 {
                     this.routes[farPort] = new int[2] { 0, homePort };
                     return false;
                 }
+
+                /*
+                Console.WriteLine("// | ND");
+                foreach (KeyValuePair<int, Dictionary<int, int>> kvp in this.neighbourDistances) {
+                    Console.WriteLine(string.Format("// | KEY " + kvp.Key));
+                    foreach (KeyValuePair<int, int> kvp2 in kvp.Value)
+                        Console.WriteLine(string.Format("// | VALUE {0} {1}", kvp2.Key, kvp2.Value));
+                }
+                */
 
                 // compute new route
                 // int lowestDistance = this.nodeCount;
@@ -137,10 +147,12 @@ namespace lab2 {
                 bool res = this.routes.TryGetValue(farPort, out int[] route) && route == newRoute;
                 this.routes[farPort] = newRoute;
 
+                /*
                 Console.WriteLine("// | R AFTER");
                 foreach (KeyValuePair<int, int[]> kvp in this.routes) {
                     Console.WriteLine(string.Format("// | {0} {1} {2}", kvp.Key, kvp.Value[0], kvp.Value[1]));
                 }
+                */
 
                 return res;
             }

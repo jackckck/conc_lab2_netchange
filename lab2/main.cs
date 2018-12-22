@@ -140,17 +140,16 @@ namespace lab2 {
             AddConnection(neighbourPort, new Connection(this.port, neighbourPort, this));
         }
         public void AddConnection(int neighbourPort, Connection connection) {
-            this.routing.AddNeighbour(neighbourPort, connection);
-            //lock (this.routing.routesLock) Console.WriteLine(string.Format("// Added? {0} {1}", this.routing.GetRoutes().ContainsKey(neighbourPort), this.routing.GetConnection(neighbourPort) != null));
+            // lock (this.routing.routesLock) Console.WriteLine(string.Format("// Added? {0} {1}", this.routing.GetRoutes().ContainsKey(neighbourPort), this.routing.GetConnection(neighbourPort) != null));
             // supply new connection with all known routes
-            lock (this.routing.routesLock) foreach (KeyValuePair<int, int[]> route in this.routing.GetRoutes()) SendMessageToPort(neighbourPort, string.Format("U {0} {1} {2}", this.port, route.Key, route.Value[0]));
+            lock (this.routing.routesLock) foreach (int[] route in this.routing.AddNeighbour(neighbourPort, connection)) SendMessageToPort(neighbourPort, string.Format("U {0} {1} {2}", this.port, route[1], route[0]));
             // notify neighbours of updated routes
             SendMessageToNeighbours(string.Format("U {0} {1} {2}", this.port, neighbourPort, 1));
         }
         // update a connection
         private void UpdateConnection(int farPort1, int farPort2, int distance) {
             // Console.WriteLine(string.Format("// Connection update: {0} {1} {2}", farPort1, farPort2, distance));
-            if (this.routing.UpdateNeighbourDistance(farPort1, farPort2, distance)) SendMessageToNeighbours(string.Format("U {0} {1} {2}", this.port, farPort2, distance));
+            if (this.routing.UpdateNeighbourDistance(farPort1, farPort2, distance)) lock (this.routing.routesLock) SendMessageToNeighbours(string.Format("U {0} {1} {2}", this.port, farPort2, this.routing.GetRoutes()[farPort2][0]));
         }
         // remove a connection
         private void RemoveConnection(int neighbourPort) {
