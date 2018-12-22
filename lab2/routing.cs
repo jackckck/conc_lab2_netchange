@@ -46,6 +46,7 @@ namespace lab2 {
                 if (this.routes.TryGetValue(farPort, out int[] route) &&
                     this.neighbourConnections.TryGetValue(route[1], out Connection res))
                     return res;
+                
                 return null;
             }
         }
@@ -79,8 +80,9 @@ namespace lab2 {
 
         private bool Recompute(int farPort) {
             lock (this.routesLock) {
-                int[] newRoute = new int[2];
+                Console.WriteLine("// Recompute op route " + farPort);
 
+                int[] newRoute = new int[2];
                 if (this.homePort == farPort) {
                     this.routes[farPort] = new int[2] { 0, homePort };
                     return false;
