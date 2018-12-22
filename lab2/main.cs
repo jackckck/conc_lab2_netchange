@@ -14,8 +14,8 @@ namespace lab2 {
     }
 
     public class Node {
-        private int port;
-        private RoutingTable routing;
+        private readonly int port;
+        private readonly RoutingTable routing;
 
         // constructor
         public Node(string[] ports) {
@@ -81,7 +81,9 @@ namespace lab2 {
                         break;
                     // destroy connection
                     case "D":
-                        RemoveConnection(int.Parse(command[1]));
+                        int neighbourPort = int.Parse(command[1]);
+                        SendMessageToPort(neighbourPort, "D " + this.port);
+                        RemoveConnection(neighbourPort);
                         break;
                 }
             }
@@ -105,17 +107,13 @@ namespace lab2 {
                     break;
                 // connection from neighbour closed
                 case "D":
-                    int neighbourPort = int.Parse(command[1]);
-                    if (this.routing.RemoveNeighbour(neighbourPort)) {
-                        // todo get distance
-                        SendMessageToNeighbours(string.Format("U {0} {1} {2}", this.port, neighbourPort, "???"));
-                    }
+                    RemoveConnection(int.Parse(command[1]));
                     break;
                 // distance update from neighbour
                 case "U":
-                    if (this.routing.UpdateNeighbourDistance(int.Parse(command[1]), int.Parse(command[2]), int.Parse(command[3]))) {
-                        SendMessageToNeighbours(message);
-                    }
+                    this.routing.UpdateNeighbourDistance(int.Parse(command[1]), int.Parse(command[2]), int.Parse(command[3]))
+                    // todo ???
+                    SendMessageToNeighbours(message);
                     break;
             }
         }
@@ -146,7 +144,7 @@ namespace lab2 {
             InformNeighbours(neighbourPort);
         }
         private void InformNeighbours(int neighbourPort) {
-            lock(this.routing.routesLock) foreach (KeyValuePair<int, int[]> route in this.routing.getRoutes()) SendMessageToPort(neighbourPort, string.Format("U {0} {1} {2}", this.port, route.Key, route.Value[0]));
+            lock (this.routing.routesLock) foreach (KeyValuePair<int, int[]> route in this.routing.getRoutes()) SendMessageToPort(neighbourPort, string.Format("U {0} {1} {2}", this.port, route.Key, route.Value[0]));
             SendMessageToNeighbours(string.Format("U {0} {1} {2}", this.port, neighbourPort, 1));
         }
 

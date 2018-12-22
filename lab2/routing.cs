@@ -3,8 +3,8 @@ using System.Collections.Generic;
 
 namespace lab2 {
     public class RoutingTable {
-        private int homePort;
-        private int nodeCount;
+        private readonly int homePort;
+        private readonly int nodeCount;
         public readonly object routesLock;
 
         // key ^= neighbour's port int, value ^= Connection to neighbour
@@ -61,26 +61,26 @@ namespace lab2 {
         }
 
         // remove a connection
-        public bool RemoveNeighbour(int neighbourPort) {
+        public void RemoveNeighbour(int neighbourPort) {
             this.neighbourConnections.Remove(neighbourPort);
             this.neighbourDistances.Remove(neighbourPort);
 
-            return Recompute(neighbourPort);
+            Recompute(neighbourPort);
         }
 
         // updates the routing table's knowledge of the distance between neighbourPort and destinationPort
-        public bool UpdateNeighbourDistance(int neighbourPort, int farPort, int newDistance) {
-            if (this.neighbourDistances.TryGetValue(neighbourPort, out Dictionary<int, int> distances)) {
-                distances[farPort] = newDistance;
-            }
-            return Recompute(farPort);
+        public void UpdateNeighbourDistance(int neighbourPort, int farPort, int newDistance) {
+            if (this.neighbourDistances.TryGetValue(neighbourPort, out Dictionary<int, int> distances)) distances[farPort] = newDistance;
+            Recompute(farPort);
         }
 
         // use with care, or just use recompute instead
+        // todo remove (move to single usage instance)
         private void UpdateRoute(int port, int newDistance, int newPreferred) {
             lock (this.routesLock) this.routes[port] = new int[2] { newDistance, newPreferred };
         }
         
+        // todo remove?
         private void PurgeNode(int port) {
             this.neighbourConnections.Remove(port);
             this.neighbourDistances.Remove(port);
@@ -89,12 +89,12 @@ namespace lab2 {
             //this.nodeCount--;
         }
 
-        private bool Recompute(int farPort) {
+        private void Recompute(int farPort) {
             int[] newRoute = new int[2];
 
             if (this.homePort == farPort) {
                 lock (this.routesLock) this.routes[farPort] = new int[2] { 0, homePort };
-                return false;
+                return;
             }
 
             // compute new route
@@ -114,9 +114,8 @@ namespace lab2 {
             }
 
             // update route with new route
-            bool res = this.routes.TryGetValue(farPort, out int[] route) && route == newRoute;
+            this.routes.TryGetValue(farPort, out int[] route);
             lock (this.routesLock) this.routes[farPort] = newRoute;
-            return res;
         }
     }
 }
