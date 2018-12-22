@@ -3,8 +3,8 @@ using System.Collections.Generic;
 
 namespace lab2 {
     public class RoutingTable {
-        private int homePort;
-        private int nodeCount;
+        private readonly int homePort;
+        private readonly int nodeCount;
         public readonly object routesLock;
 
         // key ^= neighbour's port int, value ^= Connection to neighbour
@@ -52,35 +52,28 @@ namespace lab2 {
 
 
         // add a neighbour
-        public void AddNeighbour(int neighbourPort, Connection c) {
+        public List<int[]> AddNeighbour(int neighbourPort, Connection c) {
             this.neighbourConnections[neighbourPort] = c;
             this.neighbourDistances[neighbourPort] = new Dictionary<int, int>();
 
-            // new neighbour is its own preferred neighbour
-            this.UpdateRoute(neighbourPort, 1, neighbourPort);
+            return RecomputeAll();
         }
 
         // remove a connection
-        public bool RemoveNeighbour(int neighbourPort) {
+        public List<int[]> RemoveNeighbour(int neighbourPort) {
             this.neighbourConnections.Remove(neighbourPort);
             this.neighbourDistances.Remove(neighbourPort);
 
-            return Recompute(neighbourPort);
+            return RecomputeAll();
         }
 
         // updates the routing table's knowledge of the distance between neighbourPort and destinationPort
         public bool UpdateNeighbourDistance(int neighbourPort, int farPort, int newDistance) {
-            if (this.neighbourDistances.TryGetValue(neighbourPort, out Dictionary<int, int> distances)) {
-                distances[farPort] = newDistance;
-            }
+            if (this.neighbourDistances.TryGetValue(neighbourPort, out Dictionary<int, int> distances)) distances[farPort] = newDistance;
             return Recompute(farPort);
         }
-
-        // use with care, or just use recompute instead
-        private void UpdateRoute(int port, int newDistance, int newPreferred) {
-            lock (this.routesLock) this.routes[port] = new int[2] { newDistance, newPreferred };
-        }
         
+        // todo remove?
         private void PurgeNode(int port) {
             this.neighbourConnections.Remove(port);
             this.neighbourDistances.Remove(port);
@@ -117,6 +110,23 @@ namespace lab2 {
             bool res = this.routes.TryGetValue(farPort, out int[] route) && route == newRoute;
             lock (this.routesLock) this.routes[farPort] = newRoute;
             return res;
+        }
+
+        // recomputes routes and a returns list of routes that have been updated
+        private List<int[]> RecomputeAll() {
+            List<int[]> updatedRoutes = new List<int[]>();
+            foreach (KeyValuePair<int,  int[]> portRoute in this.routes) {
+                // deze code is een beetje lelijk, maar wel geheel 
+
+                // als recompute leidt tot een verandering
+                if (Recompute(portRoute.Key)) {
+                    // voeg updated route toe aan returnlijst
+                    if (routes.TryGetValue(portRoute.Key, out int[] newRoute)) {
+                        updatedRoutes.Add(newRoute);
+                    }
+                }
+            }
+            return updatedRoutes;
         }
     }
 }

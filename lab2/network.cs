@@ -5,9 +5,9 @@ using System.Net.Sockets;
 
 namespace lab2 {
     public class Connection {
-        private StreamReader reader;
-        private StreamWriter writer;
-        private Node node;
+        private readonly StreamReader reader;
+        private readonly StreamWriter writer;
+        private readonly Node node;
 
         // constructor for client
         public Connection(int port, int neighbourPort, Node node) {
